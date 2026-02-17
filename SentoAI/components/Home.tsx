@@ -8,19 +8,19 @@ export default function Home() {
   const params = useLocalSearchParams();
   const [showData, setShowData] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [hasAlert, setHasAlert] = useState(true); // Controlează vizibilitatea alertei de status
-
-  // 1. GESTIONARE TRANZACȚII PRIN STATE (pentru a putea fi modificate)
-  const [mariaTransactions, setMariaTransactions] = useState([
-    { id: 'm1', title: 'Pensie Decembrie', sub: 'Ministerul Muncii', amount: '+2.800,00 RON', type: 'in', date: 'Ieri', icon: 'wallet-outline' },
-    { id: 'm2', title: 'Factură Enel', sub: 'Utilități', amount: '-245,30 RON', type: 'out', date: 'Acum 2 zile', icon: 'flash-outline' },
-    { id: 'm3', title: 'Farmacia Tei', sub: 'Sănătate', amount: '-112,00 RON', type: 'out', date: 'Acum 3 zile', icon: 'medical-outline' },
-  ]);
-
+  
+  // 1. STĂRI PENTRU LISTE (Permit modificarea dinamică)
+  const [hasAlert, setHasAlert] = useState(true); 
   const [adrianTransactions, setAdrianTransactions] = useState([
     { id: 'a1', title: 'Alertă: Plată Blocată', sub: 'Tentativă achiziție alcool', amount: '145,00 RON', type: 'alert', date: 'Acum 10 min', icon: 'warning-outline' },
     { id: 'a2', title: 'Raport Săptămânal', sub: 'Activitate Maria ok', amount: 'Analiză AI', type: 'info', date: 'Azi dimineață', icon: 'document-text-outline' },
     { id: 'a3', title: 'Logare Nouă', sub: 'Dispozitiv: iPhone 17 Pro', amount: 'Securizat', type: 'info', date: 'Ieri', icon: 'phone-portrait-outline' },
+  ]);
+
+  const [mariaTransactions, setMariaTransactions] = useState([
+    { id: 'm1', title: 'Pensie Decembrie', sub: 'Ministerul Muncii', amount: '+2.800,00 RON', type: 'in', date: 'Ieri', icon: 'wallet-outline' },
+    { id: 'm2', title: 'Factură Enel', sub: 'Utilități', amount: '-245,30 RON', type: 'out', date: 'Acum 2 zile', icon: 'flash-outline' },
+    { id: 'm3', title: 'Farmacia Tei', sub: 'Sănătate', amount: '-112,00 RON', type: 'out', date: 'Acum 3 zile', icon: 'medical-outline' },
   ]);
 
   // DATE PROFILE
@@ -55,8 +55,8 @@ export default function Home() {
       
       // Dacă am confirmat acțiunea în TransactionAlert, curățăm interfața
       if (params.actionTaken === 'true') {
-        setHasAlert(false);
-        setAdrianTransactions(prev => prev.filter(t => t.id !== 'a1'));
+        setHasAlert(false); // Ascunde bannerul roșu
+        setAdrianTransactions(prev => prev.filter(t => t.id !== 'a1')); // Șterge alerta din listă
       }
     }
   }, [params.userRole, params.actionTaken]);
@@ -77,10 +77,10 @@ export default function Home() {
         </View>
         
         <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.iconCircle} onPress={() => router.push('/notifications')}>
+          <TouchableOpacity style={styles.iconCircle}>
             <Ionicons name="notifications-outline" size={22} color="#1A1A1A" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconCircle} onPress={() => router.push('/settings')}>
+          <TouchableOpacity style={styles.iconCircle}>
             <Ionicons name="settings-outline" size={22} color="#1A1A1A" />
           </TouchableOpacity>
         </View>
@@ -119,7 +119,7 @@ export default function Home() {
         {isSenior ? "Sunt aici să te ajut să faci plăți în siguranță." : "Monitorizezi activitatea și alertele pentru Maria."}
       </Text>
 
-      {/* STATUS BOX (Se ascunde pentru Adrian dacă hasAlert e false) */}
+      {/* STATUS BOX (Dinamic: se ascunde dacă alerta a fost procesată) */}
       {(isSenior || hasAlert) && (
         <View style={[styles.statusBox, !isSenior && styles.statusBoxWarning]}>
           <View style={[styles.checkCircle, !isSenior && styles.checkCircleWarning]}>
@@ -188,7 +188,7 @@ export default function Home() {
         </TouchableOpacity>
       </View>
 
-      {/* LISTĂ TRANZACȚII DIN STATE */}
+      {/* LISTĂ TRANZACȚII DIN STATE (Dinamice) */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{isSenior ? "Tranzacții recente" : "Activitate Monitorizată"}</Text>
         <TouchableOpacity><Text style={styles.viewAll}>Vezi tot</Text></TouchableOpacity>

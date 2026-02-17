@@ -16,23 +16,26 @@ export default function TransactionAlert() {
 
   // FUNCȚIE REPARATĂ: Trimite parametrul 'userRole' înapoi la Home
   const handleDecision = (type: 'aprobat' | 'blocat') => {
-    Alert.alert(
-      type === 'aprobat' ? "Tranzacție Aprobată" : "Tranzacție Blocată",
-      `Decizia a fost trimisă. Te întorci la portalul de monitorizare.`,
-      [
-        { 
-          text: "OK", 
-          onPress: () => {
-            // Folosim push cu parametru pentru a forța Home să știe că suntem Adrian
-            router.push({
-              pathname: '/',
-              params: { userRole: 'adrian' }
-            });
-          } 
-        }
-      ]
-    );
-  };
+  Alert.alert(
+    type === 'aprobat' ? "Tranzacție Aprobată" : "Tranzacție Blocată",
+    `Decizia a fost trimisă.`,
+    [
+      { 
+        text: "OK", 
+        onPress: () => {
+          // Navigăm înapoi la Home și trimitem instrucțiunile de curățare
+          router.replace({
+            pathname: '/',
+            params: { 
+              userRole: 'adrian',
+              actionTaken: 'true' // <--- Semnalul de ștergere
+            }
+          });
+        } 
+      }
+    ]
+  );
+};
 
   return (
     <SafeAreaView style={styles.container}>
