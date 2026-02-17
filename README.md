@@ -1,26 +1,32 @@
-# UBB_Frontend
-###🏁🏁🏁Cum rulezi proiectul 
-Urmează acești pași pentru a porni aplicația pe simulatorul iOS, Android sau în browser.
+# 🤖 UBB_Frontend (SentoAI)
 
-##1️⃣ Instalarea dependențelor
-Înainte de prima rulare, asigură-te că ai toate pachetele instalate:
+Acesta este proiectul frontend dezvoltat cu Expo și React Native.
 
-Bash
-npm install
-# sau
-yarn install
-##2️⃣ Pornirea serverului de dezvoltare (Metro Bundler)
-Rulează următoarea comandă pentru a porni proiectul și a curăța cache-ul (recomandat pentru a evita erori de compilare):
+---
 
-Bash
-npx expo start --clear
-##3️⃣ Lansarea aplicației
-După ce serverul a pornit, poți folosi următoarele scurtături de la tastatură direct în terminal:
-iOS: Apasă i pentru a deschide Simulatorul iOS.
-Android: Apasă a pentru a deschide Emulatorul Android.
-Web: Apasă w pentru a deschide aplicația în browser.
-Dispozitiv Fizic: Scanează codul QR afișat în terminal folosind aplicația Expo Go (Android) sau camera foto (iOS).
-🛠 Comenzi Utile în Terminal
-r - Reîncarcă aplicația (Reload).
-m - Deschide meniul de developeri.
-j - Deschide debugger-ul.
+### 📦 1.1 Instalarea dependențelor
+Deschide terminalul în directorul proiectului și rulează:
+`npm install`
+
+### 💻 1.2 Configurare Simulator
+Pentru a rula aplicația pe calculator, ai nevoie de:
+iOS (Mac doar): Instalează Xcode din App Store. După instalare, deschide-l o dată pentru a accepta licența.
+Android: Instalează Android Studio și configurează un "Virtual Device" (Emulator) din Device Manager.
+
+### ⚡ 2. Pornirea proiectului
+Pentru a porni serverul și a curăța cache-ul, rulează:
+`npx expo start --clear`
+
+### 📱 3. Vizualizarea aplicației
+După start, apasă tasta corespunzătoare:
+* **i** — simulator iOS
+* **a** — emulator Android
+* **w** — browser Web
+* **QR Scan** — cu aplicația Expo Go
+
+---
+
+### 🛠️ Comenzi Rapide
+* **r** — Reload app
+* **m** — Meniu developeri
+* **Ctrl + C** — Oprește serverul
