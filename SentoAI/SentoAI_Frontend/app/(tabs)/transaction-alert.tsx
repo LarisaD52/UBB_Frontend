@@ -40,11 +40,15 @@ export default function TransactionAlert() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.alertHeader}>
-          
-          {/* Cercul principal care conține iconița și textul de stare */}
+          {/* Semnul exclamării principal */}
           <View style={styles.warningCircle}>
-            <Ionicons name="alert-circle" size={44} color="#C53030" />
-            <Text style={styles.pendingLabel}>TRANZACȚIE ÎN AȘTEPTARE</Text>
+            <Ionicons name="alert-circle" size={40} color="#C53030" />
+          </View>
+          
+          {/* ETICHETA: Semnul roșu în stânga textului, fără dreptunghi în jur */}
+          <View style={styles.statusRow}>
+            <Ionicons name="alert-circle" size={18} color="#C53030" style={{ marginRight: 6 }} />
+            <Text style={styles.pendingTextInline}>Tranzacție în așteptare</Text>
           </View>
 
           <Text style={styles.amount}>{alertData.amount}</Text>
@@ -92,60 +96,37 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 16, fontWeight: '700' },
   backButton: { width: 40, height: 40, justifyContent: 'center' },
   scrollContent: { paddingHorizontal: 20, alignItems: 'center', paddingBottom: 20 },
-  alertHeader: { alignItems: 'center', marginVertical: 15 },
+  alertHeader: { alignItems: 'center', marginVertical: 10 },
+  warningCircle: { width: 70, height: 70, borderRadius: 35, backgroundColor: '#FFF5F5', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
   
-  // Cercul de avertizare mărit pentru a cuprinde textul
-  warningCircle: { 
-    width: 120, 
-    height: 120, 
-    borderRadius: 60, 
-    backgroundColor: '#FFF5F5', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#FED7D7'
-  },
-  
-  // Eticheta roșie din interiorul cercului
-  pendingLabel: {
-    color: '#C53030',
-    fontSize: 9,
-    fontWeight: '800',
-    marginTop: 5,
-    textAlign: 'center'
-  },
-
-  amount: { fontSize: 34, fontWeight: '800', color: '#1A1A1A', marginBottom: 4 },
-  merchant: { fontSize: 17, color: '#4A5568', fontWeight: '500' },
-  time: { fontSize: 13, color: '#A0AEC0', marginTop: 2 },
-  
-  aiBox: { backgroundColor: '#F0F9FF', borderRadius: 20, padding: 18, width: '100%', borderWidth: 1, borderColor: '#BEE3F8' },
-  aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  aiTitle: { fontSize: 15, fontWeight: '700', color: '#2D7482' },
-  aiMessage: { fontSize: 14, color: '#2C5282', lineHeight: 21 },
-  categoryBadge: { backgroundColor: 'rgba(45, 116, 130, 0.1)', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginTop: 12 },
-  categoryText: { color: '#2D7482', fontSize: 11, fontWeight: '700' },
-  
-  question: { marginTop: 25, fontSize: 15, fontWeight: '600', color: '#4A5568', marginBottom: 15 },
-  actionContainer: { flexDirection: 'row', gap: 12, width: '100%', marginBottom: 12 },
-  actionButton: { flex: 1, height: 58, borderRadius: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, elevation: 2 },
-  denyButton: { backgroundColor: '#C53030' },
-  allowButton: { backgroundColor: '#2D7482' },
-  buttonText: { color: '#fff', fontSize: 14, fontWeight: '800' },
-  
-  callButton: { 
+  statusRow: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    justifyContent: 'center', 
-    width: '100%', 
-    height: 54, 
-    borderRadius: 18, 
-    backgroundColor: '#EBF5F6', 
-    borderWidth: 1, 
-    borderColor: '#D1E7E9', 
-    marginTop: 5, 
-    gap: 10 
+    marginBottom: 10
   },
+  pendingTextInline: { 
+    color: '#C53030', 
+    fontSize: 14, 
+    fontWeight: '700', 
+    textTransform: 'uppercase',
+    letterSpacing: 0.5
+  },
+
+  amount: { fontSize: 32, fontWeight: '800', color: '#1A1A1A' },
+  merchant: { fontSize: 16, color: '#4A5568' },
+  time: { fontSize: 12, color: '#A0AEC0' },
+  aiBox: { backgroundColor: '#F0F9FF', borderRadius: 20, padding: 15, width: '100%', borderWidth: 1, borderColor: '#BEE3F8' },
+  aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  aiTitle: { fontSize: 15, fontWeight: '700', color: '#2D7482' },
+  aiMessage: { fontSize: 14, color: '#2C5282', lineHeight: 20 },
+  categoryBadge: { backgroundColor: 'rgba(45, 116, 130, 0.1)', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, marginTop: 10 },
+  categoryText: { color: '#2D7482', fontSize: 11, fontWeight: '700' },
+  question: { marginTop: 20, fontSize: 14, fontWeight: '600', color: '#4A5568', marginBottom: 15 },
+  actionContainer: { flexDirection: 'row', gap: 10, width: '100%', marginBottom: 10 },
+  actionButton: { flex: 1, height: 55, borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  denyButton: { backgroundColor: '#C53030' },
+  allowButton: { backgroundColor: '#2D7482' },
+  buttonText: { color: '#fff', fontSize: 13, fontWeight: '800' },
+  callButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 50, borderRadius: 15, backgroundColor: '#EBF5F6', borderWidth: 1, borderColor: '#D1E7E9', marginTop: 5, gap: 8 },
   callButtonText: { color: '#2D7482', fontSize: 14, fontWeight: '700' }
 });

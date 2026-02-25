@@ -7,21 +7,11 @@ import io
 import speech_recognition as sr
 from pydub import AudioSegment
 from datetime import datetime
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Request
 
 # Importăm logica de analiză a riscului din ai_engine.py
 from ai_engine import analyze_transaction_risk 
 
 app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Or specify your frontend URL(s)
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # State-ul utilizatorului pentru fluxuri complexe
 user_states = {}
@@ -157,15 +147,3 @@ async def process_audio(audio: UploadFile = File(...)):
 @app.post("/process-voice")
 async def process_voice(data: dict):
     return await handle_logic_for_transcript(data.get("transcript", ""))
-
-@app.get("/restrictions")
-async def get_restrictions():
-    return get_db().get("restrictions", [])
-
-@app.put("/restrictions")
-async def update_restrictions(request: Request):
-    restrictions = await request.json()
-    db = get_db()
-    db["restrictions"] = restrictions
-    save_db(db)
-    return {"status": "ok"}

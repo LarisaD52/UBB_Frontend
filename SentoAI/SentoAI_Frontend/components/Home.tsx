@@ -9,9 +9,8 @@ export default function Home() {
   const [showData, setShowData] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   
-  // State-uri independente pentru gestionarea alertelor
-  const [hasAdrianAlert, setHasAdrianAlert] = useState(true); // Alerta lui Adrian (Mega Image)
-  const [phishingResolved, setPhishingResolved] = useState(false); // Alerta Mariei (Colet)
+  const [hasAdrianAlert, setHasAdrianAlert] = useState(true); 
+  const [phishingResolved, setPhishingResolved] = useState(false);
   const [currentBalance, setCurrentBalance] = useState(12450.75);
 
   const [adrianTransactions, setAdrianTransactions] = useState([
@@ -20,7 +19,7 @@ export default function Home() {
     { id: 'a3', title: 'Logare Nouă', sub: 'Dispozitiv: iPhone 17 Pro', amount: 'Securizat', type: 'info', date: 'Ieri', icon: 'phone-portrait-outline' },
   ]);
 
-  const [mariaTransactions, setMariaTransactions] = useState([
+  const [mariaTransactions] = useState([
     { id: 'm1', title: 'Pensie Decembrie', sub: 'Ministerul Muncii', amount: '+2.800,00 RON', type: 'in', date: 'Ieri', icon: 'wallet-outline' },
     { id: 'm2', title: 'Factură Enel', sub: 'Utilități', amount: '-245,30 RON', type: 'out', date: 'Acum 2 zile', icon: 'flash-outline' },
     { id: 'm3', title: 'Farmacia Tei', sub: 'Sănătate', amount: '-112,00 RON', type: 'out', date: 'Acum 3 zile', icon: 'medical-outline' },
@@ -47,28 +46,16 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState(mariaData);
 
   useEffect(() => {
-    // 1. LOGICĂ PENTRU MARIA (Phishing Simulation)
-    // Când Maria vine din PhishingSimulation, ascundem doar bannerul ei
     if (params.phishingAction === 'true') {
       setPhishingResolved(true);
-      if (currentBalance === 12450.75) {
-        setCurrentBalance(12450.75 - 25.45);
-      }
+      if (currentBalance === 12450.75) setCurrentBalance(12450.75 - 25.45);
     }
-
-    // 2. LOGICĂ PENTRU ADRIAN (Transaction Alert)
-    // Adrian își șterge propria alertă doar după ce confirmă decizia în ecranul de analiză
     if (params.actionTaken === 'true') {
       setHasAdrianAlert(false);
       setAdrianTransactions(prev => prev.filter(t => t.id !== 'a1'));
     }
-
-    // Gestionarea utilizatorului curent
-    if (params.userRole === 'adrian') {
-      setCurrentUser(adiData);
-    } else {
-      setCurrentUser(mariaData);
-    }
+    if (params.userRole === 'adrian') setCurrentUser(adiData);
+    else setCurrentUser(mariaData);
   }, [params.userRole, params.actionTaken, params.phishingAction]);
 
   const isSenior = currentUser.role === 'senior';
@@ -86,8 +73,15 @@ export default function Home() {
           </View>
         </View>
         <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.iconCircle}><Ionicons name="notifications-outline" size={22} color="#1A1A1A" /></TouchableOpacity>
-          <TouchableOpacity style={styles.iconCircle} onPress={() => router.push('/settings')}><Ionicons name="settings-outline" size={22} color="#1A1A1A" /></TouchableOpacity>
+          <TouchableOpacity style={styles.iconCircle} onPress={() => router.push('/notifications')}>
+            <Ionicons name="notifications-outline" size={22} color="#1A1A1A" />
+            {((isSenior && !phishingResolved) || (!isSenior && hasAdrianAlert)) && (
+              <View style={styles.notificationDot} />
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconCircle} onPress={() => router.push('/settings')}>
+            <Ionicons name="settings-outline" size={22} color="#1A1A1A" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -113,13 +107,9 @@ export default function Home() {
         )}
       </View>
 
-      {/* STATUS BOX: Interactiv pentru Adrian (Alertă Mega Image) sau Informativ pentru Maria */}
+      {/* STATUS BOX */}
       {!isSenior && hasAdrianAlert ? (
-        <TouchableOpacity 
-          style={[styles.statusBox, styles.statusBoxWarning]}
-          onPress={() => router.push('/transaction-alert')}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity style={[styles.statusBox, styles.statusBoxWarning]} onPress={() => router.push('/transaction-alert')} activeOpacity={0.7}>
           <View style={styles.checkCircleWarning}><Ionicons name="alert-circle" size={16} color="#C53030" /></View>
           <View style={{ flex: 1 }}>
             <Text style={styles.statusTitleWarning}>Tranzacție Riscantă Detectată</Text>
@@ -132,21 +122,18 @@ export default function Home() {
           <View style={styles.checkCircle}><Ionicons name="checkmark" size={16} color="#2E7D32" /></View>
           <View style={{ flex: 1 }}>
             <Text style={styles.statusTitle}>{isSenior ? mariaData.statusTitle : "Totul este sub control"}</Text>
-            <Text style={styles.statusSub}>{isSenior ? mariaData.statusSub : "Nu sunt alerte noi de securitate."}</Text>
+            <Text style={styles.statusSub}>{isSenior ? mariaData.statusSub : "Nu sunt alerte noi."}</Text>
           </View>
         </View>
       )}
 
-      {/* NOTIFICARE PHISHING: Vizibilă doar pentru Maria până la rezolvare */}
+      {/* NOTIFICARE PHISHING */}
       {isSenior && !phishingResolved && (
-        <TouchableOpacity 
-          style={styles.phishingAlert} 
-          onPress={() => router.push('/phishing-simulation')}
-        >
+        <TouchableOpacity style={styles.phishingAlert} onPress={() => router.push('/phishing-simulation')}>
           <Ionicons name="mail-unread" size={24} color="#C53030" />
           <View style={{ flex: 1 }}>
             <Text style={styles.phishingTitle}>Mesaj nou: Colet blocat 📦</Text>
-            <Text style={styles.phishingSub}>Apasă pentru a rezolva livrarea pachetului tău.</Text>
+            <Text style={styles.phishingSub}>Apasă pentru a rezolva livrarea.</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#C53030" />
         </TouchableOpacity>
@@ -165,14 +152,31 @@ export default function Home() {
         </View>
         <Text style={styles.balanceLabel}>Sold disponibil</Text>
         <View style={styles.amountContainer}>
-          <Text style={styles.balanceAmount}>
-            {showData ? currentBalance.toLocaleString('ro-RO', { minimumFractionDigits: 2 }) : "••••••"}
-          </Text>
+          <Text style={styles.balanceAmount}>{showData ? currentBalance.toLocaleString('ro-RO', { minimumFractionDigits: 2 }) : "••••••"}</Text>
           <Text style={styles.currency}> RON</Text>
         </View>
       </View>
 
-      {/* LISTĂ TRANZACȚII */}
+      {/* BUTOANE MARI DE ACȚIUNE */}
+      <View style={styles.actionGrid}>
+        <TouchableOpacity style={styles.bigActionButton} onPress={() => router.push('/assistant')}>
+          <View style={styles.bigIconCircle}>
+            <Ionicons name="mic" size={28} color="#2D7482" />
+          </View>
+          <Text style={styles.bigActionTitle}>Vorbește cu Sento</Text>
+          <Text style={styles.bigActionSub}>Asistent vocal</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.bigActionButton} onPress={() => router.push('/transfer')}>
+          <View style={styles.bigIconCircle}>
+            <Ionicons name="card-outline" size={28} color="#2D7482" />
+          </View>
+          <Text style={styles.bigActionTitle}>Plată nouă</Text>
+          <Text style={styles.bigActionSub}>Trimite bani</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* TRANZACȚII */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{isSenior ? "Tranzacții recente" : "Activitate Monitorizată"}</Text>
       </View>
@@ -191,7 +195,7 @@ export default function Home() {
           </View>
         ))}
       </View>
-      <View style={{ height: 100 }} />
+      <View style={{ height: 40 }} />
     </ScrollView>
   );
 }
@@ -205,6 +209,7 @@ const styles = StyleSheet.create({
   subLogo: { fontSize: 12, color: '#64748B' },
   headerIcons: { flexDirection: 'row', gap: 10 },
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' },
+  notificationDot: { position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: '#C53030', borderWidth: 1, borderColor: '#fff' },
   greetingContainer: { zIndex: 1000, marginTop: 25 },
   greetingRow: { flexDirection: 'row', alignItems: 'center' },
   avatarCircle: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', marginRight: 10, borderWidth: 1.5, borderColor: '#D1E5E7' },
@@ -234,6 +239,14 @@ const styles = StyleSheet.create({
   amountContainer: { flexDirection: 'row', alignItems: 'baseline', marginVertical: 8 },
   balanceAmount: { color: '#fff', fontSize: 34, fontWeight: 'bold' },
   currency: { color: '#fff', fontSize: 20 },
+  
+  // Stiluri BUTOANE MARI
+  actionGrid: { flexDirection: 'row', gap: 15, marginTop: 20 },
+  bigActionButton: { flex: 1, backgroundColor: '#F0F9FF', borderRadius: 24, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E0F2FE' },
+  bigIconCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', marginBottom: 12, elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5 },
+  bigActionTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', marginBottom: 4 },
+  bigActionSub: { fontSize: 12, color: '#64748B' },
+
   sectionHeader: { marginTop: 30, marginBottom: 15 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold' },
   listContainer: { backgroundColor: '#fff' },

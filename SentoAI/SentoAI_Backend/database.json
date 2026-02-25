@@ -50,47 +50,5 @@
       "text": "Sfat de securitate: Nu împărtăși niciodată codul PIN cu nimeni.",
       "read": true
     }
-  ],
-  "restrictions": [
-    {
-      "id": "1",
-      "label": "Băuturi Alcoolice",
-      "desc": "Sento blochează magazinele de băuturi",
-      "icon": "wine",
-      "active": true,
-      "isCustom": false
-    },
-    {
-      "id": "2",
-      "label": "Jocuri de Noroc",
-      "desc": "Pariuri și cazinouri online",
-      "icon": "dice",
-      "active": true,
-      "isCustom": false
-    },
-    {
-      "id": "3",
-      "label": "Tutun și Țigări",
-      "desc": "Chioșcuri de tutun și vapes",
-      "icon": "flame",
-      "active": false,
-      "isCustom": false
-    },
-    {
-      "id": "4",
-      "label": "test",
-      "desc": "Furnizor adăugat manual",
-      "icon": "basket",
-      "active": true,
-      "isCustom": true
-    },
-    {
-      "id": "5",
-      "label": "test",
-      "desc": "Categorie adăugată manual",
-      "icon": "basket",
-      "active": false,
-      "isCustom": true
-    }
   ]
 }
