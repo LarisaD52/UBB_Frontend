@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as Speech from 'expo-speech';
 import React, { useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, Vibration, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Home() {
   const router = useRouter();
@@ -10,7 +9,11 @@ export default function Home() {
   const [showData, setShowData] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   
-  const [hasAlert, setHasAlert] = useState(true); 
+  // State-uri independente pentru gestionarea alertelor
+  const [hasAdrianAlert, setHasAdrianAlert] = useState(true); // Alerta lui Adrian (Mega Image)
+  const [phishingResolved, setPhishingResolved] = useState(false); // Alerta Mariei (Colet)
+  const [currentBalance, setCurrentBalance] = useState(12450.75);
+
   const [adrianTransactions, setAdrianTransactions] = useState([
     { id: 'a1', title: 'Alertă: Plată Blocată', sub: 'Tentativă achiziție alcool', amount: '145,00 RON', type: 'alert', date: 'Acum 10 min', icon: 'warning-outline' },
     { id: 'a2', title: 'Raport Săptămânal', sub: 'Activitate Maria ok', amount: 'Analiză AI', type: 'info', date: 'Azi dimineață', icon: 'document-text-outline' },
@@ -23,49 +26,52 @@ export default function Home() {
     { id: 'm3', title: 'Farmacia Tei', sub: 'Sănătate', amount: '-112,00 RON', type: 'out', date: 'Acum 3 zile', icon: 'medical-outline' },
   ]);
 
-  const mariaData = {
-    name: "Maria",
-    role: "senior",
-    balance: "12.450,75",
-    iban: "RO49 SENT 1234 5678 0000",
-    statusTitle: "Totul este în regulă",
-    statusSub: "Contul tău este protejat și securizat.",
-    avatar: require('../assets/images/maria.png'),
-    color: "#2D7482"
+  const mariaData = { 
+    name: "Senior", 
+    role: "senior", 
+    avatar: require('../assets/images/maria.png'), 
+    color: "#2D7482", 
+    statusTitle: "Totul este în regulă", 
+    statusSub: "Contul tău este protejat și securizat." 
   };
 
   const adiData = {
-    name: "Adrian",
+    name: "Nepotul",
     role: "trusted_contact",
-    balance: "12.450,75", 
-    iban: "RO49 SENT 1234 5678 0000",
-    statusTitle: "1 Tranzacție Suspectă",
-    statusSub: "Maria a încercat o plată neobișnuită.",
     avatar: require('../assets/images/andrei.png'),
-    color: "#2D7482"
+    color: "#2D7482",
+    statusTitle: "Tranzacție Riscantă Detectată",
+    statusSub: "Maria a efectuat o plată pe un site clonă."
   };
 
   const [currentUser, setCurrentUser] = useState(mariaData);
 
   useEffect(() => {
+    // 1. LOGICĂ PENTRU MARIA (Phishing Simulation)
+    // Când Maria vine din PhishingSimulation, ascundem doar bannerul ei
+    if (params.phishingAction === 'true') {
+      setPhishingResolved(true);
+      if (currentBalance === 12450.75) {
+        setCurrentBalance(12450.75 - 25.45);
+      }
+    }
+
+    // 2. LOGICĂ PENTRU ADRIAN (Transaction Alert)
+    // Adrian își șterge propria alertă doar după ce confirmă decizia în ecranul de analiză
+    if (params.actionTaken === 'true') {
+      setHasAdrianAlert(false);
+      setAdrianTransactions(prev => prev.filter(t => t.id !== 'a1'));
+    }
+
+    // Gestionarea utilizatorului curent
     if (params.userRole === 'adrian') {
       setCurrentUser(adiData);
-      if (params.actionTaken === 'true') {
-        setHasAlert(false);
-        setAdrianTransactions(prev => prev.filter(t => t.id !== 'a1'));
-      }
     } else {
       setCurrentUser(mariaData);
     }
-  }, [params.userRole, params.actionTaken]);
+  }, [params.userRole, params.actionTaken, params.phishingAction]);
 
   const isSenior = currentUser.role === 'senior';
-
-  const navigateWithFeedback = (path: string, message: string, extraParams = {}) => {
-    Vibration.vibrate(50);
-    Speech.speak(message, { language: 'ro-RO' });
-    router.push({ pathname: path as any, params: extraParams });
-  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -79,34 +85,17 @@ export default function Home() {
             <Text style={styles.subLogo}>{isSenior ? "Împreună, în siguranță" : "Portal Nepot / Tutore"}</Text>
           </View>
         </View>
-        
         <View style={styles.headerIcons}>
-          <TouchableOpacity 
-            style={styles.iconCircle} 
-            onPress={() => navigateWithFeedback('/notifications', "Deschidem notificările")}
-          >
-            <Ionicons name="notifications-outline" size={22} color="#1A1A1A" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.iconCircle} 
-            onPress={() => navigateWithFeedback('/protectionsettings', "Mergem la setări")}
-          >
-            <Ionicons name="settings-outline" size={22} color="#1A1A1A" />
-          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconCircle}><Ionicons name="notifications-outline" size={22} color="#1A1A1A" /></TouchableOpacity>
+          <TouchableOpacity style={styles.iconCircle} onPress={() => router.push('/settings')}><Ionicons name="settings-outline" size={22} color="#1A1A1A" /></TouchableOpacity>
         </View>
       </View>
 
       {/* SELECTARE CONT */}
       <View style={styles.greetingContainer}>
-        <TouchableOpacity 
-          style={styles.greetingRow} 
-          onPress={() => setShowUserMenu(!showUserMenu)}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity style={styles.greetingRow} onPress={() => setShowUserMenu(!showUserMenu)}>
           <Ionicons name={showUserMenu ? "chevron-up" : "chevron-down"} size={20} color="#1A1A1A" style={{ marginRight: 10 }} />
-          <View style={styles.avatarCircle}>
-            <Image source={currentUser.avatar} style={styles.avatarImage} />
-          </View>
+          <View style={styles.avatarCircle}><Image source={currentUser.avatar} style={styles.avatarImage} /></View>
           <Text style={styles.greetingName}>{currentUser.name} 👋</Text>
         </TouchableOpacity>
 
@@ -116,7 +105,6 @@ export default function Home() {
               <Image source={require('../assets/images/maria.png')} style={styles.menuAvatar} />
               <Text style={[styles.menuText, isSenior && styles.activeMenuText]}>Maria (Senior)</Text>
             </TouchableOpacity>
-            <View style={styles.menuDivider} />
             <TouchableOpacity style={styles.menuItem} onPress={() => { setCurrentUser(adiData); setShowUserMenu(false); router.setParams({userRole: 'adrian'})}}>
               <Image source={require('../assets/images/andrei.png')} style={styles.menuAvatar} />
               <Text style={[styles.menuText, !isSenior && styles.activeMenuText]}>Adrian (Nepot)</Text>
@@ -125,38 +113,35 @@ export default function Home() {
         )}
       </View>
 
-      <Text style={styles.subGreeting}>
-        {isSenior ? "Sunt aici să te ajut să faci plăți în siguranță." : "Monitorizezi activitatea și alertele pentru Maria."}
-      </Text>
-
-      {/* STATUS BOX */}
-      {(isSenior || hasAlert) && (
-        <View style={[styles.statusBox, !isSenior && styles.statusBoxWarning]}>
-          <View style={[styles.checkCircle, !isSenior && styles.checkCircleWarning]}>
-            <Ionicons name={isSenior ? "checkmark" : "alert-circle"} size={16} color={isSenior ? "#2E7D32" : "#C53030"} />
-          </View>
+      {/* STATUS BOX: Interactiv pentru Adrian (Alertă Mega Image) sau Informativ pentru Maria */}
+      {!isSenior && hasAdrianAlert ? (
+        <TouchableOpacity 
+          style={[styles.statusBox, styles.statusBoxWarning]}
+          onPress={() => router.push('/transaction-alert')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.checkCircleWarning}><Ionicons name="alert-circle" size={16} color="#C53030" /></View>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.statusTitle, !isSenior && styles.statusTitleWarning]}>
-                {isSenior ? mariaData.statusTitle : adiData.statusTitle}
-            </Text>
-            <Text style={[styles.statusSub, !isSenior && styles.statusSubWarning]}>
-                {isSenior ? mariaData.statusSub : adiData.statusSub}
-            </Text>
+            <Text style={styles.statusTitleWarning}>Tranzacție Riscantă Detectată</Text>
+            <Text style={styles.statusSubWarning}>Mega Image: Tentativă achiziție alcool.</Text>
           </View>
-          {!isSenior && (
-            <TouchableOpacity style={styles.alertButtonSmall} onPress={() => router.push('/transaction-alert')}>
-              <Text style={styles.alertButtonText}>Vezi Alerta</Text>
-              <Ionicons name="chevron-forward" size={14} color="#fff" />
-            </TouchableOpacity>
-          )}
+          <Ionicons name="chevron-forward" size={18} color="#C53030" />
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.statusBox}>
+          <View style={styles.checkCircle}><Ionicons name="checkmark" size={16} color="#2E7D32" /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.statusTitle}>{isSenior ? mariaData.statusTitle : "Totul este sub control"}</Text>
+            <Text style={styles.statusSub}>{isSenior ? mariaData.statusSub : "Nu sunt alerte noi de securitate."}</Text>
+          </View>
         </View>
       )}
 
-      {/* NOTIFICARE TRANZACȚIE SUSPECTĂ / PHISHING (DOAR PENTRU MARIA) */}
-      {isSenior && (
+      {/* NOTIFICARE PHISHING: Vizibilă doar pentru Maria până la rezolvare */}
+      {isSenior && !phishingResolved && (
         <TouchableOpacity 
           style={styles.phishingAlert} 
-          onPress={() => navigateWithFeedback('/phishing-simulation', "Atenție, mesaj suspect detectat!")}
+          onPress={() => router.push('/phishing-simulation')}
         >
           <Ionicons name="mail-unread" size={24} color="#C53030" />
           <View style={{ flex: 1 }}>
@@ -180,32 +165,16 @@ export default function Home() {
         </View>
         <Text style={styles.balanceLabel}>Sold disponibil</Text>
         <View style={styles.amountContainer}>
-          <Text style={styles.balanceAmount}>{showData ? currentUser.balance : "••••••"}</Text>
+          <Text style={styles.balanceAmount}>
+            {showData ? currentBalance.toLocaleString('ro-RO', { minimumFractionDigits: 2 }) : "••••••"}
+          </Text>
           <Text style={styles.currency}> RON</Text>
         </View>
-        <Text style={styles.ibanText}>{currentUser.iban}</Text>
-      </View>
-
-      {/* ACȚIUNI */}
-      <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/assistant')}>
-          <View style={styles.actionIconCircle}><Ionicons name="mic" size={24} color="#2D7482" /></View>
-          <Text style={styles.actionTitle}>Vorbește cu Sento</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/transfer')}>
-          <View style={styles.actionIconCircle}><Ionicons name="card-outline" size={24} color="#2D7482" /></View>
-          <Text style={styles.actionTitle}>Plată nouă</Text>
-        </TouchableOpacity>
       </View>
 
       {/* LISTĂ TRANZACȚII */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{isSenior ? "Tranzacții recente" : "Activitate Monitorizată"}</Text>
-        <TouchableOpacity 
-          onPress={() => navigateWithFeedback('/transactions', "Deschidem istoricul complet", { userRole: currentUser.role })}
-        >
-          <Text style={styles.viewAll}>Vezi tot</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.listContainer}>
@@ -218,12 +187,7 @@ export default function Home() {
               <Text style={styles.listTitle}>{item.title}</Text>
               <Text style={styles.listSub}>{item.sub}</Text>
             </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={[styles.listAmount, { color: item.type === 'in' ? '#2E7D32' : (item.type === 'alert' ? '#C53030' : '#1A1A1A') }]}>
-                {item.amount}
-              </Text>
-              <Text style={styles.listDate}>{item.date}</Text>
-            </View>
+            <Text style={[styles.listAmount, { color: item.type === 'alert' ? '#C53030' : '#1A1A1A' }]}>{item.amount}</Text>
           </View>
         ))}
       </View>
@@ -237,56 +201,45 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 50 },
   logoGroup: { flexDirection: 'row', alignItems: 'center' },
   logoImage: { width: 42, height: 42, borderRadius: 10, marginRight: 12 },
-  logoText: { fontSize: 22, fontWeight: 'bold', color: '#1A1A1A' },
+  logoText: { fontSize: 22, fontWeight: 'bold' },
   subLogo: { fontSize: 12, color: '#64748B' },
   headerIcons: { flexDirection: 'row', gap: 10 },
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' },
   greetingContainer: { zIndex: 1000, marginTop: 25 },
   greetingRow: { flexDirection: 'row', alignItems: 'center' },
-  avatarCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#EBF5F6', overflow: 'hidden', justifyContent: 'center', alignItems: 'center', marginRight: 10, borderWidth: 1.5, borderColor: '#D1E5E7' },
-  avatarImage: { width: '100%', height: '100%', resizeMode: 'cover' },
-  greetingName: { fontSize: 26, fontWeight: 'bold', color: '#1A1A1A' },
-  subGreeting: { color: '#64748B', fontSize: 15, marginTop: 5, marginBottom: 5 },
-  userMenu: { position: 'absolute', top: 50, left: 0, width: 220, backgroundColor: '#fff', borderRadius: 15, padding: 5, elevation: 10, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 10, borderWidth: 1, borderColor: '#F1F5F9' },
-  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 12 },
-  menuAvatar: { width: 30, height: 30, borderRadius: 15 },
-  menuText: { fontSize: 14, color: '#64748B', fontWeight: '600' },
-  activeMenuText: { color: '#2D7482', fontWeight: '800' },
-  menuDivider: { height: 1, backgroundColor: '#F1F5F9', marginHorizontal: 10 },
+  avatarCircle: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', marginRight: 10, borderWidth: 1.5, borderColor: '#D1E5E7' },
+  avatarImage: { width: '100%', height: '100%' },
+  greetingName: { fontSize: 26, fontWeight: 'bold' },
+  userMenu: { position: 'absolute', top: 50, width: 200, backgroundColor: '#fff', borderRadius: 15, padding: 5, elevation: 10, borderWidth: 1, borderColor: '#F1F5F9' },
+  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 10, gap: 10 },
+  menuAvatar: { width: 24, height: 24, borderRadius: 12 },
+  menuText: { fontSize: 13, color: '#64748B' },
+  activeMenuText: { color: '#2D7482', fontWeight: 'bold' },
   statusBox: { flexDirection: 'row', backgroundColor: '#F0FDF4', padding: 15, borderRadius: 20, marginTop: 20, alignItems: 'center', gap: 12 },
   statusBoxWarning: { backgroundColor: '#FFF5F5' },
   checkCircle: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#DCFCE7', justifyContent: 'center', alignItems: 'center' },
-  checkCircleWarning: { backgroundColor: '#FED7D7' },
-  statusTitle: { color: '#166534', fontWeight: 'bold', fontSize: 14 },
-  statusTitleWarning: { color: '#C53030' },
-  statusSub: { color: '#166534', fontSize: 12, opacity: 0.8 },
-  statusSubWarning: { color: '#C53030' },
-  alertButtonSmall: { backgroundColor: '#C53030', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  alertButtonText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
-  phishingAlert: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF5F5', padding: 15, borderRadius: 20, marginTop: 20, gap: 12, borderWidth: 1, borderColor: '#FED7D7', elevation: 3 },
-  phishingTitle: { fontWeight: 'bold', color: '#C53030', fontSize: 14 },
-  phishingSub: { color: '#475569', fontSize: 12, opacity: 0.8 },
-  balanceCard: { borderRadius: 30, padding: 25, marginTop: 25, elevation: 10 },
+  checkCircleWarning: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#FED7D7', justifyContent: 'center', alignItems: 'center' },
+  statusTitle: { color: '#166534', fontWeight: 'bold' },
+  statusTitleWarning: { color: '#C53030', fontWeight: 'bold' },
+  statusSub: { color: '#166534', fontSize: 12 },
+  statusSubWarning: { color: '#C53030', fontSize: 12 },
+  phishingAlert: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF5F5', padding: 15, borderRadius: 20, marginTop: 20, gap: 12, borderWidth: 1, borderColor: '#FED7D7' },
+  phishingTitle: { fontWeight: 'bold', color: '#C53030' },
+  phishingSub: { color: '#475569', fontSize: 12 },
+  balanceCard: { borderRadius: 30, padding: 25, marginTop: 25 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   shieldBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5 },
   shieldText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
-  balanceLabel: { color: '#fff', opacity: 0.8, fontSize: 13 },
+  balanceLabel: { color: '#fff', opacity: 0.8 },
   amountContainer: { flexDirection: 'row', alignItems: 'baseline', marginVertical: 8 },
   balanceAmount: { color: '#fff', fontSize: 34, fontWeight: 'bold' },
   currency: { color: '#fff', fontSize: 20 },
-  ibanText: { color: '#fff', opacity: 0.7, fontSize: 12, marginTop: 10 },
-  actionRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 25 },
-  actionCard: { backgroundColor: '#F8FAFC', width: '48%', padding: 20, borderRadius: 25, alignItems: 'center', elevation: 2 },
-  actionIconCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-  actionTitle: { fontWeight: 'bold', color: '#1A1A1A', textAlign: 'center', fontSize: 13 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 30, marginBottom: 15 },
+  sectionHeader: { marginTop: 30, marginBottom: 15 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold' },
-  viewAll: { color: '#2D7482', fontWeight: 'bold' },
   listContainer: { backgroundColor: '#fff' },
   listItem: { flexDirection: 'row', alignItems: 'center', gap: 15, marginBottom: 20 },
   listIcon: { width: 45, height: 45, borderRadius: 15, justifyContent: 'center', alignItems: 'center' },
   listTitle: { fontWeight: 'bold', fontSize: 14 },
   listSub: { color: '#94A3B8', fontSize: 12 },
-  listAmount: { fontWeight: 'bold', fontSize: 14 },
-  listDate: { color: '#94A3B8', fontSize: 10 }
+  listAmount: { fontWeight: 'bold', fontSize: 14 }
 });

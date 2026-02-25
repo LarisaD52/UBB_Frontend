@@ -12,10 +12,10 @@ export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(true);
 
   // Date pentru contacte
-  const trustedContacts = [
-    { id: '1', name: 'Maria Popescu', initial: 'M' },
-    { id: '2', name: 'Ion Ionescu', initial: 'I' },
-  ];
+  const [trustedContacts, setTrustedContacts] = useState([
+    { id: '1', name: 'Ana Maria', initial: 'AM' },
+    { id: '2', name: 'Nepotu Andrei', initial: 'NA' },
+  ]);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -38,7 +38,11 @@ export default function SettingsScreen() {
               <Text style={styles.settingLabel}>Autentificare Biometrică</Text>
               <Text style={styles.settingSub}>FaceID pentru logare</Text>
             </View>
-            <Switch value={biometrics} onValueChange={setBiometrics} trackColor={{ false: "#E2E8F0", true: "#2D7482" }} />
+            <Switch 
+              value={biometrics} 
+              onValueChange={setBiometrics} 
+              trackColor={{ false: "#E2E8F0", true: "#2D7482" }} 
+            />
           </View>
           <View style={styles.settingInfo}>
             <Ionicons name="notifications-outline" size={24} color="#94A3B8" style={styles.icon} />
@@ -46,7 +50,11 @@ export default function SettingsScreen() {
               <Text style={styles.settingLabel}>Alerte Tranzacții</Text>
               <Text style={styles.settingSub}>Notificări în timp real</Text>
             </View>
-            <Switch value={notifications} onValueChange={setNotifications} trackColor={{ false: "#E2E8F0", true: "#2D7482" }} />
+            <Switch 
+              value={notifications} 
+              onValueChange={setNotifications} 
+              trackColor={{ false: "#E2E8F0", true: "#2D7482" }} 
+            />
           </View>
         </View>
 
@@ -59,14 +67,17 @@ export default function SettingsScreen() {
               <Text style={styles.settingLabel}>Protecție Sento AI</Text>
               <Text style={styles.settingSub}>Analiză antifraudă activă</Text>
             </View>
-            <Switch value={isProtectionEnabled} onValueChange={setIsProtectionEnabled} trackColor={{ false: "#E2E8F0", true: "#2D7482" }} />
+            <Switch 
+              value={isProtectionEnabled} 
+              onValueChange={setIsProtectionEnabled} 
+              trackColor={{ false: "#E2E8F0", true: "#2D7482" }} 
+            />
           </View>
         </View>
 
         {/* SECȚIUNE BUTOANE SPECIALE AI */}
         {isProtectionEnabled && (
           <View style={{ gap: 12, marginTop: 10 }}>
-            {/* Buton 1: Limite AI */}
             <TouchableOpacity 
               style={styles.specialAiButton} 
               onPress={() => router.push('/protectionsettings')}
@@ -82,7 +93,6 @@ export default function SettingsScreen() {
               <Ionicons name="chevron-forward" size={20} color="#2D7482" />
             </TouchableOpacity>
 
-            {/* Buton 2: Profil Consum (NOU) */}
             <TouchableOpacity 
               style={[styles.specialAiButton, { backgroundColor: '#fff', borderColor: '#E2E8F0' }]} 
               onPress={() => router.push('/consumeprofile')}
@@ -100,21 +110,29 @@ export default function SettingsScreen() {
           </View>
         )}
 
-        {/* SECȚIUNE: CONTACTE */}
+        {/* SECȚIUNE: CONTACTE (Actualizată conform screenshot-ului) */}
         {isProtectionEnabled && (
           <>
             <Text style={styles.sectionTitle}>CONTACTE DE ÎNCREDERE</Text>
             <View style={styles.contactsCard}>
-              <Text style={styles.contactsDesc}>Persoanele de mai jos pot confirma tranzacțiile tale.</Text>
+              <Text style={styles.contactsDesc}>
+                Persoanele de mai jos pot confirma tranzacțiile tale.
+              </Text>
+              
               {trustedContacts.map((contact) => (
                 <View key={contact.id} style={styles.contactRow}>
-                  <View style={styles.avatar}><Text style={styles.avatarText}>{contact.initial}</Text></View>
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>{contact.initial}</Text>
+                  </View>
                   <Text style={styles.contactName}>{contact.name}</Text>
-                  <Ionicons name="close-circle-outline" size={20} color="#E2E8F0" />
+                  <TouchableOpacity activeOpacity={0.5}>
+                    <Ionicons name="close-circle-outline" size={22} color="#E2E8F0" />
+                  </TouchableOpacity>
                 </View>
               ))}
-              <TouchableOpacity style={styles.addContactBtn}>
-                <Ionicons name="add" size={20} color="#2D7482" />
+
+              <TouchableOpacity style={styles.addContactBtn} activeOpacity={0.6}>
+                <Ionicons name="add" size={24} color="#2D7482" />
                 <Text style={styles.addContactText}>Adaugă contact nou</Text>
               </TouchableOpacity>
             </View>
@@ -127,18 +145,68 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 60, paddingHorizontal: 20 },
-  backButton: { width: 45, height: 45, borderRadius: 15, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', elevation: 2 },
-  headerTitle: { fontSize: 20, fontWeight: '700' },
-  content: { padding: 20 },
-  sectionTitle: { fontSize: 12, fontWeight: '700', color: '#94A3B8', marginBottom: 10, marginTop: 20, letterSpacing: 1 },
-  settingCard: { backgroundColor: '#fff', borderRadius: 20, padding: 15, marginBottom: 10 },
-  settingInfo: { flexDirection: 'row', alignItems: 'center', marginVertical: 12 },
-  icon: { marginRight: 15 },
-  settingLabel: { fontSize: 16, fontWeight: '600' },
-  settingSub: { fontSize: 12, color: '#94A3B8' },
-
+  container: { 
+    flex: 1, 
+    backgroundColor: '#F8FAFC' 
+  },
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    marginTop: 60, 
+    paddingHorizontal: 20 
+  },
+  backButton: { 
+    width: 45, 
+    height: 45, 
+    borderRadius: 15, 
+    backgroundColor: '#fff', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4
+  },
+  headerTitle: { 
+    fontSize: 20, 
+    fontWeight: '700', 
+    color: '#1A1A1A' 
+  },
+  content: { 
+    padding: 20 
+  },
+  sectionTitle: { 
+    fontSize: 12, 
+    fontWeight: '700', 
+    color: '#94A3B8', 
+    marginBottom: 12, 
+    marginTop: 24, 
+    letterSpacing: 1 
+  },
+  settingCard: { 
+    backgroundColor: '#fff', 
+    borderRadius: 20, 
+    padding: 15, 
+    marginBottom: 10 
+  },
+  settingInfo: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginVertical: 12 
+  },
+  icon: { 
+    marginRight: 15 
+  },
+  settingLabel: { 
+    fontSize: 16, 
+    fontWeight: '600', 
+    color: '#1A1A1A' 
+  },
+  settingSub: { 
+    fontSize: 12, 
+    color: '#94A3B8' 
+  },
   specialAiButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -161,15 +229,67 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 15,
   },
-  specialAiTitle: { fontSize: 16, fontWeight: '800', color: '#2D7482' },
-  specialAiSub: { fontSize: 13, color: '#64748B', marginTop: 2 },
-
-  contactsCard: { backgroundColor: '#fff', borderRadius: 20, padding: 20 },
-  contactsDesc: { color: '#94A3B8', fontSize: 13, marginBottom: 15 },
-  contactRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F0F9FF', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
-  avatarText: { color: '#2D7482', fontWeight: '700' },
-  contactName: { flex: 1, fontSize: 15 },
-  addContactBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10 },
-  addContactText: { color: '#2D7482', fontWeight: '700', marginLeft: 5 }
+  specialAiTitle: { 
+    fontSize: 16, 
+    fontWeight: '800', 
+    color: '#2D7482' 
+  },
+  specialAiSub: { 
+    fontSize: 13, 
+    color: '#64748B', 
+    marginTop: 2 
+  },
+  contactsCard: { 
+    backgroundColor: '#fff', 
+    borderRadius: 28, 
+    padding: 24,
+    shadowColor: '#000',
+    shadowOpacity: 0.02,
+    shadowRadius: 10,
+    elevation: 1
+  },
+  contactsDesc: { 
+    color: '#94A3B8', 
+    fontSize: 15, 
+    marginBottom: 20,
+    lineHeight: 20 
+  },
+  contactRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: 20 
+  },
+  avatar: { 
+    width: 48, 
+    height: 48, 
+    borderRadius: 24, 
+    backgroundColor: '#F0F9FF', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginRight: 16 
+  },
+  avatarText: { 
+    color: '#2D7482', 
+    fontWeight: '700', 
+    fontSize: 16 
+  },
+  contactName: { 
+    flex: 1, 
+    fontSize: 17, 
+    fontWeight: '500', 
+    color: '#1A1A1A' 
+  },
+  addContactBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginTop: 10,
+    paddingVertical: 5
+  },
+  addContactText: { 
+    color: '#2D7482', 
+    fontWeight: '800', 
+    fontSize: 16, 
+    marginLeft: 8 
+  }
 });
