@@ -174,7 +174,7 @@ export default function ConsumeProfileScreen() {
             }}
           >
             <Ionicons name="add-circle" size={24} color="#2D7482" />
-            <Text style={styles.addBtnText}>Adauga furnizor</Text>
+            <Text style={styles.addBtnText}>Adaugă furnizor</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.addBtn}
@@ -184,7 +184,7 @@ export default function ConsumeProfileScreen() {
             }}
           >
             <Ionicons name="add-circle" size={24} color="#2D7482" />
-            <Text style={styles.addBtnText}>Adaugare categorie generala</Text>
+            <Text style={styles.addBtnText}>Adăugare categorie generală</Text>
           </TouchableOpacity>
         </View>
 
