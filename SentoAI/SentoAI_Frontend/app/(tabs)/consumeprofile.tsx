@@ -14,6 +14,7 @@ export default function ConsumeProfileScreen() {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [newItemName, setNewItemName] = useState('');
+  const [modalType, setModalType] = useState<'furnizor' | 'categorie'>('categorie');
 
   const toggleSwitch = (id: string) => {
     setRestrictions(current =>
@@ -30,7 +31,7 @@ export default function ConsumeProfileScreen() {
       const newItem = {
         id: Math.random().toString(),
         label: newItemName,
-        desc: 'Categorie adăugată manual',
+        desc: modalType === 'furnizor' ? 'Furnizor adăugat manual' : 'Categorie adăugată manual',
         icon: 'basket',
         active: true,
         isCustom: true 
@@ -95,10 +96,16 @@ export default function ConsumeProfileScreen() {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.addBtn} onPress={() => setModalVisible(true)}>
-          <Ionicons name="add-circle" size={24} color="#2D7482" />
-          <Text style={styles.addBtnText}>Adaugă altceva (ex: Dulciuri, Cafea)</Text>
-        </TouchableOpacity>
+        <View style={styles.addButtonsContainer}>
+          <TouchableOpacity style={styles.addBtn} onPress={() => { setModalType('furnizor'); setModalVisible(true); }}>
+            <Ionicons name="add-circle" size={24} color="#2D7482" />
+            <Text style={styles.addBtnText}>Adauga furnizor</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addBtn} onPress={() => { setModalType('categorie'); setModalVisible(true); }}>
+            <Ionicons name="add-circle" size={24} color="#2D7482" />
+            <Text style={styles.addBtnText}>Adaugare categorie generala</Text>
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.saveBtn} onPress={() => router.back()}>
           <Text style={styles.saveBtnText}>Salvează și Instruiește AI</Text>
@@ -108,10 +115,12 @@ export default function ConsumeProfileScreen() {
       <Modal visible={modalVisible} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Ce să mai monitorizeze Sento?</Text>
+            <Text style={styles.modalTitle}>
+              {modalType === 'furnizor' ? 'Adaugă furnizor' : 'Ce să mai monitorizeze Sento?'}
+            </Text>
             <TextInput 
               style={styles.input} 
-              placeholder="Scrie aici (ex: Fast Food)" 
+              placeholder={modalType === 'furnizor' ? 'Scrie aici numele furnizorului (ex: SRL Medlife)' : 'Scrie aici (ex: Fast Food)'} 
               value={newItemName}
               onChangeText={setNewItemName}
               autoFocus
@@ -157,7 +166,8 @@ const styles = StyleSheet.create({
     alignItems: 'center' 
   },
 
-  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 20, padding: 15, borderWidth: 2, borderColor: '#D1E7E9', borderStyle: 'dashed', borderRadius: 20 },
+  addButtonsContainer: { flexDirection: 'row', gap: 10, marginTop: 20 },
+  addBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 15, borderWidth: 2, borderColor: '#D1E7E9', borderStyle: 'dashed', borderRadius: 20 },
   addBtnText: { color: '#2D7482', fontWeight: '700', fontSize: 15 },
   saveBtn: { backgroundColor: '#2D7482', padding: 22, borderRadius: 20, alignItems: 'center', marginTop: 30, marginBottom: 40 },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
