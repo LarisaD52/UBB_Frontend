@@ -99,11 +99,11 @@ export default function ConsumeProfileScreen() {
         <View style={styles.addButtonsContainer}>
           <TouchableOpacity style={styles.addBtn} onPress={() => { setModalType('furnizor'); setModalVisible(true); }}>
             <Ionicons name="add-circle" size={24} color="#2D7482" />
-            <Text style={styles.addBtnText}>Adauga furnizor</Text>
+            <Text style={styles.addBtnText}>Adaugă furnizor</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.addBtn} onPress={() => { setModalType('categorie'); setModalVisible(true); }}>
             <Ionicons name="add-circle" size={24} color="#2D7482" />
-            <Text style={styles.addBtnText}>Adaugare categorie generala</Text>
+            <Text style={styles.addBtnText}>Adăugare categorie generală</Text>
           </TouchableOpacity>
         </View>
 
