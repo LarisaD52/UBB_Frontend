@@ -1,0 +1,54 @@
+{
+  "user_profile": {
+    "name": "Maria",
+    "balance": "3250.50"
+  },
+  "contacts": [
+    {
+      "nume": "Adrian",
+      "relatie": "Frate",
+      "iban": "RO12BTRL0000111122223333",
+      "last_transfer": 200
+    },
+    {
+      "nume": "Nepotul Adi",
+      "relatie": "Nepot",
+      "iban": "RO99INGB0000444455556666",
+      "last_transfer": 50
+    }
+  ],
+  "history_60_days": [
+    {
+      "nume": "Farmacia Tei",
+      "suma": 120,
+      "data": "15 Februarie"
+    },
+    {
+      "nume": "Adrian",
+      "suma": 200,
+      "data": "10 Februarie"
+    },
+    {
+      "nume": "Mega Image",
+      "suma": 85,
+      "data": "05 Februarie"
+    }
+  ],
+  "notifications": [
+    {
+      "id": 1,
+      "text": "Am detectat o tranzacție suspectă și am protejat contul tău. Revizuiește detaliile.",
+      "read": true
+    },
+    {
+      "id": 2,
+      "text": "Transferul de 850 de lei către Ion Proprietar a fost realizat.",
+      "read": true
+    },
+    {
+      "id": 3,
+      "text": "Sfat de securitate: Nu împărtăși niciodată codul PIN cu nimeni.",
+      "read": true
+    }
+  ]
+}

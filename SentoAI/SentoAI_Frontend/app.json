@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.larisadragea.sentoai"
     },
     "android": {
       "adaptiveIcon": {
@@ -37,6 +38,12 @@
           "dark": {
             "backgroundColor": "#000000"
           }
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermissionText": "Sento AI are nevoie de microfon pentru a te ajuta cu transferurile bancare."
         }
       ]
     ],

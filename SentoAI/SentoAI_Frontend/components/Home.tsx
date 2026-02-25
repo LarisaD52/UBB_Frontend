@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Speech from 'expo-speech';
 import React, { useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, Vibration, View } from 'react-native';
 
 export default function Home() {
   const router = useRouter();
@@ -9,7 +10,6 @@ export default function Home() {
   const [showData, setShowData] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   
-  // 1. STĂRI PENTRU LISTE (Permit modificarea dinamică)
   const [hasAlert, setHasAlert] = useState(true); 
   const [adrianTransactions, setAdrianTransactions] = useState([
     { id: 'a1', title: 'Alertă: Plată Blocată', sub: 'Tentativă achiziție alcool', amount: '145,00 RON', type: 'alert', date: 'Acum 10 min', icon: 'warning-outline' },
@@ -23,7 +23,6 @@ export default function Home() {
     { id: 'm3', title: 'Farmacia Tei', sub: 'Sănătate', amount: '-112,00 RON', type: 'out', date: 'Acum 3 zile', icon: 'medical-outline' },
   ]);
 
-  // DATE PROFILE
   const mariaData = {
     name: "Maria",
     role: "senior",
@@ -48,25 +47,30 @@ export default function Home() {
 
   const [currentUser, setCurrentUser] = useState(mariaData);
 
-  // 2. LOGICA DE SINCRONIZARE: Verifică dacă venim de la o acțiune de blocare/acceptare
   useEffect(() => {
     if (params.userRole === 'adrian') {
       setCurrentUser(adiData);
-      
-      // Dacă am confirmat acțiunea în TransactionAlert, curățăm interfața
       if (params.actionTaken === 'true') {
-        setHasAlert(false); // Ascunde bannerul roșu
-        setAdrianTransactions(prev => prev.filter(t => t.id !== 'a1')); // Șterge alerta din listă
+        setHasAlert(false);
+        setAdrianTransactions(prev => prev.filter(t => t.id !== 'a1'));
       }
+    } else {
+      setCurrentUser(mariaData);
     }
   }, [params.userRole, params.actionTaken]);
 
   const isSenior = currentUser.role === 'senior';
 
+  const navigateWithFeedback = (path: string, message: string, extraParams = {}) => {
+    Vibration.vibrate(50);
+    Speech.speak(message, { language: 'ro-RO' });
+    router.push({ pathname: path as any, params: extraParams });
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       
-      {/* HEADER LOGO */}
+      {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.logoGroup}>
           <Image source={require('../assets/images/logo.jpg')} style={styles.logoImage} />
@@ -77,10 +81,16 @@ export default function Home() {
         </View>
         
         <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.iconCircle}>
+          <TouchableOpacity 
+            style={styles.iconCircle} 
+            onPress={() => navigateWithFeedback('/notifications', "Deschidem notificările")}
+          >
             <Ionicons name="notifications-outline" size={22} color="#1A1A1A" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconCircle}>
+          <TouchableOpacity 
+            style={styles.iconCircle} 
+            onPress={() => navigateWithFeedback('/protectionsettings', "Mergem la setări")}
+          >
             <Ionicons name="settings-outline" size={22} color="#1A1A1A" />
           </TouchableOpacity>
         </View>
@@ -102,12 +112,12 @@ export default function Home() {
 
         {showUserMenu && (
           <View style={styles.userMenu}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => { setCurrentUser(mariaData); setShowUserMenu(false); }}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setCurrentUser(mariaData); setShowUserMenu(false); router.setParams({userRole: 'maria'})}}>
               <Image source={require('../assets/images/maria.png')} style={styles.menuAvatar} />
               <Text style={[styles.menuText, isSenior && styles.activeMenuText]}>Maria (Senior)</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
-            <TouchableOpacity style={styles.menuItem} onPress={() => { setCurrentUser(adiData); setShowUserMenu(false); }}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setCurrentUser(adiData); setShowUserMenu(false); router.setParams({userRole: 'adrian'})}}>
               <Image source={require('../assets/images/andrei.png')} style={styles.menuAvatar} />
               <Text style={[styles.menuText, !isSenior && styles.activeMenuText]}>Adrian (Nepot)</Text>
             </TouchableOpacity>
@@ -119,7 +129,7 @@ export default function Home() {
         {isSenior ? "Sunt aici să te ajut să faci plăți în siguranță." : "Monitorizezi activitatea și alertele pentru Maria."}
       </Text>
 
-      {/* STATUS BOX (Dinamic: se ascunde dacă alerta a fost procesată) */}
+      {/* STATUS BOX */}
       {(isSenior || hasAlert) && (
         <View style={[styles.statusBox, !isSenior && styles.statusBoxWarning]}>
           <View style={[styles.checkCircle, !isSenior && styles.checkCircleWarning]}>
@@ -142,11 +152,11 @@ export default function Home() {
         </View>
       )}
 
-      {/* SIMULARE SMS FRAUDĂ - DOAR PENTRU MARIA */}
+      {/* NOTIFICARE TRANZACȚIE SUSPECTĂ / PHISHING (DOAR PENTRU MARIA) */}
       {isSenior && (
         <TouchableOpacity 
           style={styles.phishingAlert} 
-          onPress={() => router.push('/phishing-simulation')}
+          onPress={() => navigateWithFeedback('/phishing-simulation', "Atenție, mesaj suspect detectat!")}
         >
           <Ionicons name="mail-unread" size={24} color="#C53030" />
           <View style={{ flex: 1 }}>
@@ -168,7 +178,7 @@ export default function Home() {
             <Ionicons name={showData ? "eye-outline" : "eye-off-outline"} size={22} color="#fff" />
           </TouchableOpacity>
         </View>
-        <Text style={styles.balanceLabel}>Sold disponibil {!isSenior && "(Maria)"}</Text>
+        <Text style={styles.balanceLabel}>Sold disponibil</Text>
         <View style={styles.amountContainer}>
           <Text style={styles.balanceAmount}>{showData ? currentUser.balance : "••••••"}</Text>
           <Text style={styles.currency}> RON</Text>
@@ -176,7 +186,7 @@ export default function Home() {
         <Text style={styles.ibanText}>{currentUser.iban}</Text>
       </View>
 
-      {/* BUTOANE ACȚIUNI */}
+      {/* ACȚIUNI */}
       <View style={styles.actionRow}>
         <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/assistant')}>
           <View style={styles.actionIconCircle}><Ionicons name="mic" size={24} color="#2D7482" /></View>
@@ -188,10 +198,14 @@ export default function Home() {
         </TouchableOpacity>
       </View>
 
-      {/* LISTĂ TRANZACȚII DIN STATE (Dinamice) */}
+      {/* LISTĂ TRANZACȚII */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{isSenior ? "Tranzacții recente" : "Activitate Monitorizată"}</Text>
-        <TouchableOpacity><Text style={styles.viewAll}>Vezi tot</Text></TouchableOpacity>
+        <TouchableOpacity 
+          onPress={() => navigateWithFeedback('/transactions', "Deschidem istoricul complet", { userRole: currentUser.role })}
+        >
+          <Text style={styles.viewAll}>Vezi tot</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.listContainer}>
@@ -249,9 +263,9 @@ const styles = StyleSheet.create({
   statusSubWarning: { color: '#C53030' },
   alertButtonSmall: { backgroundColor: '#C53030', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 4 },
   alertButtonText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
-  phishingAlert: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF5F5', padding: 15, borderRadius: 20, marginTop: 20, gap: 12, borderWidth: 1, borderColor: '#FED7D7' },
+  phishingAlert: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF5F5', padding: 15, borderRadius: 20, marginTop: 20, gap: 12, borderWidth: 1, borderColor: '#FED7D7', elevation: 3 },
   phishingTitle: { fontWeight: 'bold', color: '#C53030', fontSize: 14 },
-  phishingSub: { color: '#C53030', fontSize: 12, opacity: 0.8 },
+  phishingSub: { color: '#475569', fontSize: 12, opacity: 0.8 },
   balanceCard: { borderRadius: 30, padding: 25, marginTop: 25, elevation: 10 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   shieldBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5 },
@@ -273,6 +287,6 @@ const styles = StyleSheet.create({
   listIcon: { width: 45, height: 45, borderRadius: 15, justifyContent: 'center', alignItems: 'center' },
   listTitle: { fontWeight: 'bold', fontSize: 14 },
   listSub: { color: '#94A3B8', fontSize: 12 },
-  listAmount: { fontWeight: 'bold' },
+  listAmount: { fontWeight: 'bold', fontSize: 14 },
   listDate: { color: '#94A3B8', fontSize: 10 }
 });
