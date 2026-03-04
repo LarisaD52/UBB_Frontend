@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function Home() {
   const router = useRouter();
@@ -21,10 +22,6 @@ export default function Home() {
 
   const [transactions, setTransactions] = useState<any[]>([]);
   
-  useEffect(() => {
-      fetchTransactions();
-  }, []);
-    
   const fetchTransactions = async () => {
     try {
       const response = await fetch("http://localhost:8000/transactions");
@@ -35,6 +32,12 @@ export default function Home() {
     } finally {
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchTransactions();
+    }, [fetchTransactions])
+  );
 
   const mariaData = { 
     name: "Senior", 
