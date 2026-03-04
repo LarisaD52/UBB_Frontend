@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -16,6 +16,74 @@ export default function SettingsScreen() {
     { id: '1', name: 'Ana Maria', initial: 'AM' },
     { id: '2', name: 'Nepotu Andrei', initial: 'NA' },
   ]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newRelation, setNewRelation] = useState('');
+  const [loadingContacts, setLoadingContacts] = useState(false);
+
+  const getInitial = (name: string) => {
+    if (!name) return '';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+    return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+  };
+
+  const fetchContacts = async () => {
+    setLoadingContacts(true);
+    try {
+      const res = await fetch('http://localhost:8000/contacts');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setTrustedContacts(data.map((c: any, i: number) => ({ id: String(i+1), name: c.nume || c.name || 'Contact', initial: getInitial(c.nume || c.name) })));
+      }
+    } catch (e) {
+      console.warn('Failed to fetch contacts', e);
+    } finally {
+      setLoadingContacts(false);
+    }
+  };
+  
+  const handleDeleteContact = async (contactName: string) => {
+    try {
+      const res = await fetch('http://localhost:8000/contacts', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nume: contactName }),
+      });
+      if (!res.ok) throw new Error('Server error');
+      fetchContacts();
+    } catch (e) {
+      console.warn('Failed to delete contact', e);
+      Alert.alert('Eroare', 'Nu s-a putut șterge contactul.');
+    }
+  };
+
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  const addContactSubmit = async () => {
+    if (!newName.trim()) {
+      Alert.alert('Eroare', 'Completează numele contactului');
+      return;
+    }
+    const payload = { nume: newName.trim(), relatie: newRelation.trim(), last_transfer: 0 };
+    try {
+      const res = await fetch('http://localhost:8000/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Server error');
+      setShowAddModal(false);
+      setNewName('');
+      setNewRelation('');
+      fetchContacts();
+    } catch (e) {
+      console.warn('Failed to add contact', e);
+      Alert.alert('Eroare', 'Nu s-a putut salva contactul.');
+    }
+  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -125,16 +193,35 @@ export default function SettingsScreen() {
                     <Text style={styles.avatarText}>{contact.initial}</Text>
                   </View>
                   <Text style={styles.contactName}>{contact.name}</Text>
-                  <TouchableOpacity activeOpacity={0.5}>
+                  <TouchableOpacity activeOpacity={0.6} onPress={() => handleDeleteContact(contact.name)}>
                     <Ionicons name="close-circle-outline" size={22} color="#E2E8F0" />
                   </TouchableOpacity>
                 </View>
               ))}
 
-              <TouchableOpacity style={styles.addContactBtn} activeOpacity={0.6}>
+              <TouchableOpacity style={styles.addContactBtn} activeOpacity={0.6} onPress={() => setShowAddModal(true)}>
                 <Ionicons name="add" size={24} color="#2D7482" />
                 <Text style={styles.addContactText}>Adaugă contact nou</Text>
               </TouchableOpacity>
+
+              <Modal visible={showAddModal} animationType="slide" transparent>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+                  <View style={{ width: '92%', backgroundColor: '#fff', borderRadius: 16, padding: 18 }}>
+                    <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 8 }}>Adaugă contact</Text>
+                    <TextInput placeholder="Nume complet" value={newName} onChangeText={setNewName} style={{ borderWidth: 1, borderColor: '#E2E8F0', padding: 10, borderRadius: 10, marginBottom: 8 }} />
+                    <TextInput placeholder="Relație (ex: Frate)" value={newRelation} onChangeText={setNewRelation} style={{ borderWidth: 1, borderColor: '#E2E8F0', padding: 10, borderRadius: 10, marginBottom: 8 }} />
+                    
+                    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
+                      <TouchableOpacity onPress={() => setShowAddModal(false)} style={{ paddingVertical: 8, paddingHorizontal: 12 }}>
+                        <Text style={{ color: '#64748B' }}>Anulează</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={addContactSubmit} style={{ backgroundColor: '#2D7482', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 }}>
+                        <Text style={{ color: '#fff', fontWeight: '700' }}>Salvează</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </Modal>
             </View>
           </>
         )}
