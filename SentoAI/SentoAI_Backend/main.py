@@ -9,6 +9,7 @@ from pydub import AudioSegment
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Request
+from fastapi import Body, HTTPException
 
 from ai_engine import analyze_transaction_risk 
 
@@ -136,6 +137,40 @@ async def process_audio(audio: UploadFile = File(...)):
     except Exception as e:
         print(f"Eroare: {e}")
         return {"action": "SPEAK_ONLY", "speech": "Eroare tehnică la procesarea vocii."}
+
+
+# Endpoint pentru a obține lista de contacte
+@app.get("/contacts")
+def get_contacts():
+    db = get_db()
+    return db.get("contacts", [])
+
+
+# Endpoint pentru a adăuga un contact nou
+@app.post("/contacts")
+def add_contact(contact: dict = Body(...)):
+    db = get_db()
+    contacts = db.get("contacts", [])
+    # Simplu: adăugăm obiectul primit în listă și salvăm
+    contacts.append(contact)
+    db["contacts"] = contacts
+    save_db(db)
+    return {"status": "ok", "contact": contact}
+
+
+# Endpoint pentru a șterge un contact (după nume)
+@app.delete("/contacts")
+def delete_contact(payload: dict = Body(...)):
+    name = payload.get("nume") or payload.get("name")
+    if not name:
+        raise HTTPException(status_code=400, detail="Missing 'nume' in payload")
+    db = get_db()
+    contacts = db.get("contacts", [])
+    new_contacts = [c for c in contacts if (c.get("nume") or c.get("name")) != name]
+    deleted_count = len(contacts) - len(new_contacts)
+    db["contacts"] = new_contacts
+    save_db(db)
+    return {"status": "ok", "deleted": deleted_count}
 
 @app.post("/process-voice")
 async def process_voice(data: dict):
