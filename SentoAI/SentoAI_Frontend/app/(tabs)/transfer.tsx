@@ -13,8 +13,14 @@ export default function TransferScreen() {
   const [showAlert, setShowAlert] = useState(false);
   const [alertReason, setAlertReason] = useState('');
 
-  const handleTransferInit = () => {
-    const numericAmount = parseFloat(amount);
+  // ...existing code...
+  const handleTransferInit = async () => {
+    const numericAmount = parseFloat(amount.replace(',', '.'));
+    if (Number.isNaN(numericAmount) || numericAmount <= 0) {
+      alert("Introdu o sumă validă.");
+      return;
+    }
+
     if (numericAmount > 1000) {
       setAlertReason("Suma este mult mai mare decât plățile tale obișnuite din ultimele 2 luni.");
       setShowAlert(true);
@@ -25,7 +31,34 @@ export default function TransferScreen() {
       setShowAlert(true);
       return;
     }
-    alert("Plată procesată în siguranță!");
+
+    try {
+      const response = await fetch("http://localhost:8000/make-transaction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `Transfer ${beneficiary}`,
+          sub: "IBAN",
+          amount: numericAmount,
+          type: "out",
+          currency: "RON",
+          icon: "person-outline"
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok || data?.status !== "ok") {
+        alert(data?.message || "Eroare la salvarea tranzacției.");
+        return;
+      }
+
+      alert("Plată procesată în siguranță!");
+      setAmount('');
+      setBeneficiary('');
+    } catch (error) {
+      console.error("make-transaction error:", error);
+      alert("Nu s-a putut contacta serverul.");
+    }
   };
 
   if (showAlert) {

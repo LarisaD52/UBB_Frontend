@@ -92,5 +92,277 @@
       "active": false,
       "isCustom": true
     }
+  ],
+  "transactions": [
+    {
+      "id": "1",
+      "title": "Pensie Decembrie",
+      "sub": "Ministerul Muncii",
+      "amount": "+2.800,00 RON",
+      "type": "in",
+      "date": "Ieri",
+      "icon": "wallet-outline"
+    },
+    {
+      "id": "2",
+      "title": "Factură Enel",
+      "sub": "Utilități",
+      "amount": "-245,30 RON",
+      "type": "out",
+      "date": "Acum 2 zile",
+      "icon": "flash-outline"
+    },
+    {
+      "id": "3",
+      "title": "Farmacia Tei",
+      "sub": "Sănătate",
+      "amount": "-112,00 RON",
+      "type": "out",
+      "date": "Acum 3 zile",
+      "icon": "medical-outline"
+    },
+    {
+      "id": "4",
+      "title": "Mega Image",
+      "sub": "Cumpărături",
+      "amount": "-85,40 RON",
+      "type": "out",
+      "date": "05 Feb",
+      "icon": "cart-outline"
+    },
+    {
+      "id": "5",
+      "title": "Transfer Adrian",
+      "sub": "Familie",
+      "amount": "-200,00 RON",
+      "type": "out",
+      "date": "02 Feb",
+      "icon": "person-outline"
+    },
+    {
+      "id": "6",
+      "title": "Digi România",
+      "sub": "Abonament",
+      "amount": "-45,00 RON",
+      "type": "out",
+      "date": "01 Feb",
+      "icon": "tv-outline"
+    },
+    {
+      "id": "7",
+      "title": "Piața Obor",
+      "sub": "Cumpărături",
+      "amount": "-32,00 RON",
+      "type": "out",
+      "date": "28 Ian",
+      "icon": "basket-outline"
+    },
+    {
+      "id": "8",
+      "title": "Catena",
+      "sub": "Sănătate",
+      "amount": "-67,00 RON",
+      "type": "out",
+      "date": "25 Ian",
+      "icon": "medkit-outline"
+    },
+    {
+      "id": "9",
+      "title": "Plată Întreținere",
+      "sub": "Bloc A1",
+      "amount": "-350,00 RON",
+      "type": "out",
+      "date": "20 Ian",
+      "icon": "home-outline"
+    },
+    {
+      "id": "10",
+      "title": "Lidl",
+      "sub": "Cumpărături",
+      "amount": "-128,40 RON",
+      "type": "out",
+      "date": "18 Ian",
+      "icon": "cart-outline"
+    },
+    {
+      "id": "11",
+      "title": "Carrefour",
+      "sub": "Cumpărături",
+      "amount": "-180,00 RON",
+      "type": "out",
+      "date": "15 Ian",
+      "icon": "cart-outline"
+    },
+    {
+      "id": "12",
+      "title": "Sensiblu",
+      "sub": "Sănătate",
+      "amount": "-62,50 RON",
+      "type": "out",
+      "date": "12 Ian",
+      "icon": "medkit-outline"
+    },
+    {
+      "id": "13",
+      "title": "Mega Image",
+      "sub": "Cumpărături",
+      "amount": "-88,30 RON",
+      "type": "out",
+      "date": "10 Ian",
+      "icon": "cart-outline"
+    },
+    {
+      "id": "14",
+      "title": "Farmacia Tei",
+      "sub": "Sănătate",
+      "amount": "-73,90 RON",
+      "type": "out",
+      "date": "08 Ian",
+      "icon": "medical-outline"
+    },
+    {
+      "id": "15",
+      "title": "Lidl",
+      "sub": "Cumpărături",
+      "amount": "-140,20 RON",
+      "type": "out",
+      "date": "05 Ian",
+      "icon": "cart-outline"
+    },
+    {
+      "id": "16",
+      "title": "Mega Image",
+      "sub": "Cumpărături",
+      "amount": "-101,40 RON",
+      "type": "out",
+      "date": "03 Ian",
+      "icon": "cart-outline"
+    },
+    {
+      "id": "17",
+      "title": "Catena",
+      "sub": "Sănătate",
+      "amount": "-59,40 RON",
+      "type": "out",
+      "date": "01 Ian",
+      "icon": "medkit-outline"
+    },
+    {
+      "id": "18",
+      "title": "Kaufland",
+      "sub": "Cumpărături",
+      "amount": "-156,70 RON",
+      "type": "out",
+      "date": "30 Dec",
+      "icon": "cart-outline"
+    },
+    {
+      "id": "19",
+      "title": "Sensiblu",
+      "sub": "Sănătate",
+      "amount": "-68,90 RON",
+      "type": "out",
+      "date": "28 Dec",
+      "icon": "medkit-outline"
+    },
+    {
+      "id": "20",
+      "title": "Carrefour",
+      "sub": "Cumpărături",
+      "amount": "-172,50 RON",
+      "type": "out",
+      "date": "26 Dec",
+      "icon": "cart-outline"
+    },
+    {
+      "id": "21",
+      "title": "Lidl",
+      "sub": "Cumpărături",
+      "amount": "-134,80 RON",
+      "type": "out",
+      "date": "24 Dec",
+      "icon": "cart-outline"
+    },
+    {
+      "id": "22",
+      "title": "Mega Image",
+      "sub": "Cumpărături",
+      "amount": "-90,20 RON",
+      "type": "out",
+      "date": "22 Dec",
+      "icon": "cart-outline"
+    },
+    {
+      "id": "23",
+      "title": "Farmacia Tei",
+      "sub": "Sănătate",
+      "amount": "-92,70 RON",
+      "type": "out",
+      "date": "20 Dec",
+      "icon": "medical-outline"
+    },
+    {
+      "id": "24",
+      "title": "Catena",
+      "sub": "Sănătate",
+      "amount": "-77,60 RON",
+      "type": "out",
+      "date": "18 Dec",
+      "icon": "medkit-outline"
+    },
+    {
+      "id": "25",
+      "title": "Piața Obor",
+      "sub": "Cumpărături",
+      "amount": "-32,00 RON",
+      "type": "out",
+      "date": "16 Dec",
+      "icon": "basket-outline"
+    },
+    {
+      "id": "26",
+      "title": "Enel",
+      "sub": "Utilități",
+      "amount": "-245,30 RON",
+      "type": "out",
+      "date": "14 Dec",
+      "icon": "flash-outline"
+    },
+    {
+      "id": "27",
+      "title": "Digi România",
+      "sub": "Abonament",
+      "amount": "-45,00 RON",
+      "type": "out",
+      "date": "12 Dec",
+      "icon": "tv-outline"
+    },
+    {
+      "id": "28",
+      "title": "Plată Întreținere",
+      "sub": "Bloc A1",
+      "amount": "-350,00 RON",
+      "type": "out",
+      "date": "10 Dec",
+      "icon": "home-outline"
+    },
+    {
+      "id": "29",
+      "title": "Carrefour",
+      "sub": "Cumpărături",
+      "amount": "-188,20 RON",
+      "type": "out",
+      "date": "08 Dec",
+      "icon": "cart-outline"
+    },
+    {
+      "id": "30",
+      "title": "Mega Image",
+      "sub": "Cumpărături",
+      "amount": "-101,40 RON",
+      "type": "out",
+      "date": "06 Dec",
+      "icon": "cart-outline"
+    }
   ]
 }
