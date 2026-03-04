@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function Home() {
   const router = useRouter();
@@ -21,23 +21,27 @@ export default function Home() {
   ]);
 
   const [transactions, setTransactions] = useState<any[]>([]);
-  
-  const fetchTransactions = async () => {
+  const isFocused = useIsFocused();
+  const wasFocused = useRef(false);
+
+  const fetchTransactions = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:8000/transactions");
       const data = await response.json();
-      setTransactions(data.slice(0, 5) || []);
+      const list = Array.isArray(data) ? data : (data?.transactions ?? []);
+      setTransactions(Array.isArray(list) ? list.slice(0, 5) : []);
     } catch (error) {
       console.error("Error fetching transactions:", error);
-    } finally {
     }
-  };
+  }, []);
 
-  useFocusEffect(
-    useCallback(() => {
+  useEffect(() => {
+    // runs once when screen becomes focused (not continuously)
+    if (isFocused && !wasFocused.current) {
       fetchTransactions();
-    }, [fetchTransactions])
-  );
+    }
+    wasFocused.current = isFocused;
+  }, [isFocused, fetchTransactions]);
 
   const mariaData = { 
     name: "Senior", 

@@ -3,6 +3,24 @@
     "name": "Maria",
     "balance": "3250.50"
   },
+  "ai_controls": {
+    "max_limit": {
+      "enabled": true,
+      "amount": 500
+    },
+    "verify_new_beneficiary": {
+      "enabled": true
+    },
+    "block_risky_messages": {
+      "enabled": false,
+      "request_family_help": {
+        "enabled": true
+      }
+    },
+    "quiet_on_night": {
+      "enabled": true
+    }
+  },
   "contacts": [
     {
       "nume": "Adrian",
@@ -75,22 +93,6 @@
       "icon": "flame",
       "active": false,
       "isCustom": false
-    },
-    {
-      "id": "4",
-      "label": "test",
-      "desc": "Furnizor adăugat manual",
-      "icon": "basket",
-      "active": true,
-      "isCustom": true
-    },
-    {
-      "id": "5",
-      "label": "test",
-      "desc": "Categorie adăugată manual",
-      "icon": "basket",
-      "active": false,
-      "isCustom": true
     }
   ],
   "transactions": [
