@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Modal } from 'react-native';
 
 // IMPORTUL CORECT (verifică numărul de puncte în funcție de eroare)
 import SecurityAlert from '../../components/Alert'; 
@@ -12,9 +12,22 @@ export default function TransferScreen() {
   const [beneficiary, setBeneficiary] = useState('');
   const [showAlert, setShowAlert] = useState(false);
   const [alertReason, setAlertReason] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const handleTransferInit = () => {
-    const numericAmount = parseFloat(amount);
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const handleTransferInit = async () => {
+    setLoading(true)
+    await sleep(1800);
+    setLoading(false)
+
+    const numericAmount = parseFloat(amount.replace(',', '.'));
+    if (Number.isNaN(numericAmount) || numericAmount <= 0) {
+      alert("Introdu o sumă validă.");
+      return;
+    }
+
     if (numericAmount > 1000) {
       setAlertReason("Suma este mult mai mare decât plățile tale obișnuite din ultimele 2 luni.");
       setShowAlert(true);
@@ -25,7 +38,34 @@ export default function TransferScreen() {
       setShowAlert(true);
       return;
     }
-    alert("Plată procesată în siguranță!");
+
+    try {
+      const response = await fetch("http://localhost:8000/make-transaction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `Transfer ${beneficiary}`,
+          sub: "IBAN",
+          amount: numericAmount,
+          type: "out",
+          currency: "RON",
+          icon: "person-outline"
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok || data?.status !== "ok") {
+        alert(data?.message || "Eroare la salvarea tranzacției.");
+        return;
+      }
+
+      setShowSuccessModal(true);
+      setAmount('');
+      setBeneficiary('');
+    } catch (error) {
+      console.error("make-transaction error:", error);
+      alert("Nu s-a putut contacta serverul.");
+    }
   };
 
   if (showAlert) {
@@ -56,11 +96,6 @@ export default function TransferScreen() {
           <View style={{ width: 45 }} /> 
         </View>
 
-        <View style={styles.protectionBanner}>
-          <Ionicons name="shield-checkmark" size={20} color="#2D7482" />
-          <Text style={styles.protectionTitle}>Sento AI analizează riscurile...</Text>
-        </View>
-
         <View style={styles.card}>
           <Text style={styles.label}>Nume beneficiar</Text>
           <TextInput style={styles.input} placeholder="ex: Ion Popescu" value={beneficiary} onChangeText={setBeneficiary} />
@@ -73,14 +108,41 @@ export default function TransferScreen() {
           </View>
         </View>
 
+        {loading && (
+        <View style={styles.protectionBanner}>
+          <Ionicons name="shield-checkmark" size={20} color="#2D7482" />
+          <Text style={styles.protectionTitle}>Sento AI analizează riscurile...</Text>
+        </View>)}
+
         <TouchableOpacity 
           style={[styles.btn, (!amount || !beneficiary) && { opacity: 0.5 }]}
           onPress={handleTransferInit}
           disabled={!amount || !beneficiary}
         >
-          <Text style={styles.btnText}>Verifică și Continuă</Text>
+          <Text style={styles.btnText}>Continuă</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <Modal
+        visible={showSuccessModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Transfer realizat</Text>
+            <Text style={styles.modalText}>Tranzacția a fost salvată cu succes.</Text>
+
+            <TouchableOpacity
+              style={styles.modalBtn}
+              onPress={() => setShowSuccessModal(false)}
+            >
+              <Text style={styles.modalBtnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -99,5 +161,43 @@ const styles = StyleSheet.create({
   amountInput: { fontSize: 35, fontWeight: '700', color: '#2D7482', flex: 1 },
   currency: { fontSize: 20, color: '#94A3B8', fontWeight: '600' },
   btn: { backgroundColor: '#2D7482', margin: 20, padding: 20, borderRadius: 20, alignItems: 'center' },
-  btnText: { color: '#fff', fontSize: 18, fontWeight: '700' }
+  btnText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 8,
+  },
+  modalText: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  modalBtn: {
+    backgroundColor: '#2D7482',
+    paddingVertical: 10,
+    paddingHorizontal: 22,
+    borderRadius: 12,
+  },
+  modalBtnText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+  }
 });

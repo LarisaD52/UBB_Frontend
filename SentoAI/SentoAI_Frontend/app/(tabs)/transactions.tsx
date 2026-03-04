@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -9,18 +10,22 @@ export default function TransactionsScreen() {
   const { userRole } = useLocalSearchParams();
   const isSenior = userRole !== 'adrian';
 
-  // Lista extinsă pentru Maria (Senior)
-  const mariaFullHistory = [
-    { id: '1', title: 'Pensie Decembrie', sub: 'Ministerul Muncii', amount: '+2.800,00', type: 'in', date: 'Ieri', icon: 'wallet-outline' },
-    { id: '2', title: 'Factură Enel', sub: 'Utilități', amount: '-245,30', type: 'out', date: 'Acum 2 zile', icon: 'flash-outline' },
-    { id: '3', title: 'Farmacia Tei', sub: 'Sănătate', amount: '-112,00', type: 'out', date: 'Acum 3 zile', icon: 'medical-outline' },
-    { id: '4', title: 'Mega Image', sub: 'Cumpărături', amount: '-85,40', type: 'out', date: '05 Feb', icon: 'cart-outline' },
-    { id: '5', title: 'Transfer Adrian', sub: 'Familie', amount: '-200,00', type: 'out', date: '02 Feb', icon: 'person-outline' },
-    { id: '6', title: 'Digi România', sub: 'Abonament', amount: '-45,00', type: 'out', date: '01 Feb', icon: 'tv-outline' },
-    { id: '7', title: 'Piața Obor', sub: 'Cumpărături', amount: '-32,00', type: 'out', date: '28 Ian', icon: 'basket-outline' },
-    { id: '8', title: 'Catena', sub: 'Sănătate', amount: '-67,00', type: 'out', date: '25 Ian', icon: 'medkit-outline' },
-    { id: '9', title: 'Plată Întreținere', sub: 'Bloc A1', amount: '-350,00', type: 'out', date: '20 Ian', icon: 'home-outline' },
-  ];
+  const [transactions, setTransactions] = useState<any[]>([]);
+
+  useEffect(() => {
+      fetchTransactions();
+  }, []);
+  
+  const fetchTransactions = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/transactions");
+      const data = await response.json();
+      setTransactions(data || []);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    } finally {
+    }
+  };
 
   // Lista extinsă pentru Adrian (Nepot - monitorizare)
   const adrianFullHistory = [
@@ -32,7 +37,7 @@ export default function TransactionsScreen() {
     { id: 'a6', title: 'Tentativă Phishing', sub: 'Mesaj SMS blocat', amount: 'Securizat', type: 'alert', date: '01 Feb', icon: 'mail-unread-outline' },
   ];
 
-  const currentData = isSenior ? mariaFullHistory : adrianFullHistory;
+  const currentData = isSenior ? transactions : adrianFullHistory;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -46,8 +51,6 @@ export default function TransactionsScreen() {
       </View>
 
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionDate}>Luna Februarie 2026</Text>
-        
         {currentData.map((item) => (
           <View key={item.id} style={styles.listItem}>
             <View style={[styles.iconCircle, { backgroundColor: item.type === 'alert' ? '#FFF5F5' : '#F1F5F9' }]}>

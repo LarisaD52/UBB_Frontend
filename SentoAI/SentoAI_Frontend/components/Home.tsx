@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function Home() {
   const router = useRouter();
@@ -19,11 +20,24 @@ export default function Home() {
     { id: 'a3', title: 'Logare Nouă', sub: 'Dispozitiv: iPhone 17 Pro', amount: 'Securizat', type: 'info', date: 'Ieri', icon: 'phone-portrait-outline' },
   ]);
 
-  const [mariaTransactions] = useState([
-    { id: 'm1', title: 'Pensie Decembrie', sub: 'Ministerul Muncii', amount: '+2.800,00 RON', type: 'in', date: 'Ieri', icon: 'wallet-outline' },
-    { id: 'm2', title: 'Factură Enel', sub: 'Utilități', amount: '-245,30 RON', type: 'out', date: 'Acum 2 zile', icon: 'flash-outline' },
-    { id: 'm3', title: 'Farmacia Tei', sub: 'Sănătate', amount: '-112,00 RON', type: 'out', date: 'Acum 3 zile', icon: 'medical-outline' },
-  ]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  
+  const fetchTransactions = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/transactions");
+      const data = await response.json();
+      setTransactions(data.slice(0, 5) || []);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    } finally {
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchTransactions();
+    }, [fetchTransactions])
+  );
 
   const mariaData = { 
     name: "Senior", 
@@ -182,7 +196,7 @@ export default function Home() {
       </View>
 
       <View style={styles.listContainer}>
-        {(isSenior ? mariaTransactions : adrianTransactions).map((item) => (
+        {(isSenior ? transactions : adrianTransactions).map((item) => (
           <View key={item.id} style={styles.listItem}>
             <View style={[styles.listIcon, { backgroundColor: item.type === 'alert' ? '#FFF5F5' : '#F1F5F9' }]}>
               <Ionicons name={item.icon as any} size={20} color={item.type === 'alert' ? '#C53030' : '#64748B'} />
@@ -195,7 +209,12 @@ export default function Home() {
           </View>
         ))}
       </View>
-      <View style={{ height: 40 }} />
+
+      {isSenior && (
+        <TouchableOpacity onPress={() => router.push('/transactions')}>
+          <Text style={styles.seeAllText}>Vezi tot</Text>
+        </TouchableOpacity>
+      )}
     </ScrollView>
   );
 }
@@ -254,5 +273,6 @@ const styles = StyleSheet.create({
   listIcon: { width: 45, height: 45, borderRadius: 15, justifyContent: 'center', alignItems: 'center' },
   listTitle: { fontWeight: 'bold', fontSize: 14 },
   listSub: { color: '#94A3B8', fontSize: 12 },
-  listAmount: { fontWeight: 'bold', fontSize: 14 }
+  listAmount: { fontWeight: 'bold', fontSize: 14 },
+  seeAllText: { fontSize: 14, fontWeight: '600', color: '#2D7482' },
 });

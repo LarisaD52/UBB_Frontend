@@ -10,30 +10,25 @@ from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Request
 
-# Importăm logica de analiză a riscului din ai_engine.py
 from ai_engine import analyze_transaction_risk 
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Or specify your frontend URL(s)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# State-ul utilizatorului pentru fluxuri complexe
 user_states = {}
-
-# ---------------- DATABASE ----------------
 
 def get_db():
     """Citește baza de date direct de pe disc pentru a evita datele vechi."""
     base_path = os.path.dirname(__file__)
     db_path = os.path.join(base_path, 'database.json')
     try:
-        # Deschidem și închidem fișierul la fiecare citire pentru prospețime
         with open(db_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
@@ -45,21 +40,17 @@ def save_db(db):
     db_path = os.path.join(base_path, 'database.json')
     with open(db_path, "w", encoding="utf-8") as f:
         json.dump(db, f, indent=2, ensure_ascii=False)
-        f.flush() # Forțează sistemul de operare să scrie datele imediat
+        f.flush()
         os.fsync(f.fileno())
 
 def normalize(text):
     return text.lower().strip()
 
-# ---------------- LOGICĂ DE PROCESARE TRANSCRIPT ----------------
-
 async def handle_logic_for_transcript(transcript: str):
     text = normalize(transcript)
-    # Citim versiunea proaspătă a bazei de date
     db = get_db()
     user_id = "maria_default"
     
-    # 1. CANCEL
     if any(x in text for x in ["anulează", "oprește", "renunță", "acasă"]):
         user_states[user_id] = {"step": "IDLE"}
         return {
@@ -68,25 +59,20 @@ async def handle_logic_for_transcript(transcript: str):
             "speech": "Am anulat operațiunea. Cu ce te mai pot ajuta?"
         }
 
-    # 2. SOLD
     if any(x in text for x in ["sold", "cât am", "câți bani", "balanță", "în cont"]):
         balance = db["user_profile"]["balance"]
         return {"action": "SPEAK_ONLY", "speech": f"Maria, în contul tău sunt {balance} lei."}
 
-    # 3. NOTIFICĂRI (Detectare strictă și marcare imediată)
     if any(x in text for x in ["notificare", "notificări", "mesaj", "mesaje"]):
-        # Căutăm DOAR ce are "read": False (folosim explicit False pentru siguranță)
         unread_notifications = [n for n in db["notifications"] if n.get("read") is False]
         
         if unread_notifications:
             combined_text = " ".join(n["text"] for n in unread_notifications)
             
-            # Marcăm ca citit în obiectul din memorie
             for n in db["notifications"]:
                 if n.get("read") is False:
                     n["read"] = True
             
-            # SALVĂM IMEDIAT pe disc
             save_db(db)
             
             return {
@@ -96,10 +82,8 @@ async def handle_logic_for_transcript(transcript: str):
                 "data": {"autoRead": True}
             }
         
-        # Dacă ajunge aici, înseamnă că toate au read: True în fișier
         return {"action": "SPEAK_ONLY", "speech": "Maria, nu ai nicio notificare nouă în acest moment."}
 
-    # 4. TRANSFER
     if any(x in text for x in ["transfer", "trimite", "dă-i", "plătește"]):
         for contact in db["contacts"]:
             if contact["nume"].lower() in text:
@@ -107,7 +91,6 @@ async def handle_logic_for_transcript(transcript: str):
                 return {"action": "SPEAK_ONLY", "speech": f"Cât vrei să îi trimiți lui {contact['nume']}?"}
         return {"action": "SPEAK_ONLY", "speech": "Spune-mi numele persoanei căreia vrei să îi trimiți bani."}
 
-    # 5. COLECTARE SUMĂ
     state = user_states.get(user_id, {"step": "IDLE"})
     if state["step"] == "AWAITING_AMOUNT":
         amounts = re.findall(r'\d+', text)
@@ -169,3 +152,85 @@ async def update_restrictions(request: Request):
     db["restrictions"] = restrictions
     save_db(db)
     return {"status": "ok"}
+
+@app.get("/transactions")
+async def get_transactions():
+    return get_db().get("transactions", [])
+
+@app.post("/make-transaction")
+async def make_transaction(request: Request):
+    payload = await request.json()
+    db = get_db()
+
+    if "transactions" not in db or not isinstance(db["transactions"], list):
+        db["transactions"] = []
+
+    tx = payload.get("transaction") if isinstance(payload, dict) and "transaction" in payload else payload
+    if not isinstance(tx, dict):
+        return {"status": "error", "message": "Invalid payload. Expected a JSON object."}
+
+    # Accept both old/new input keys
+    raw_amount = tx.get("amount")
+    if raw_amount is None:
+        return {"status": "error", "message": "Missing field: amount"}
+
+    try:
+        amount_value = float(str(raw_amount).replace(",", "."))
+    except ValueError:
+        return {"status": "error", "message": "Invalid amount"}
+
+    title = tx.get("title") or tx.get("name")
+    if not title:
+        return {"status": "error", "message": "Missing field: title/name"}
+
+    sub = tx.get("sub") or tx.get("category") or "Transfer"
+    tx_type = tx.get("type", "out")
+    currency = tx.get("currency", "RON")
+
+    # next numeric id based on existing format
+    max_id = 0
+    for t in db["transactions"]:
+        try:
+            max_id = max(max_id, int(str(t.get("id", "0"))))
+        except ValueError:
+            pass
+    next_id = str(max_id + 1)
+
+    new_transaction = {
+        "id": next_id,
+        "title": title,
+        "sub": sub,
+        "amount": _format_amount_ro(amount_value, tx_type, currency),
+        "type": tx_type,
+        "date": tx.get("date", _format_date_ro_short(datetime.now())),
+        "icon": tx.get("icon", _pick_icon(sub, title))
+    }
+
+    db["transactions"].insert(0, new_transaction)  # newest first
+    save_db(db)
+
+    return {"status": "ok", "transaction": new_transaction}
+
+def _format_date_ro_short(dt: datetime) -> str:
+    months = ["Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Noi", "Dec"]
+    return f"{dt.day:02d} {months[dt.month - 1]}"
+
+def _format_amount_ro(amount: float, tx_type: str = "out", currency: str = "RON") -> str:
+    sign = "+" if tx_type == "in" else "-"
+    s = f"{abs(amount):,.2f}"  # 1,234.50
+    s = s.replace(",", "X").replace(".", ",").replace("X", ".")  # 1.234,50
+    return f"{sign}{s} {currency}"
+
+def _pick_icon(sub: str, title: str) -> str:
+    text = f"{sub} {title}".lower()
+    if "utilit" in text or "enel" in text:
+        return "flash-outline"
+    if "farmac" in text or "sănăt" in text:
+        return "medical-outline"
+    if "transfer" in text or "familie" in text or "persoan" in text:
+        return "person-outline"
+    if "abonament" in text or "digi" in text:
+        return "tv-outline"
+    if "întreținere" in text or "bloc" in text:
+        return "home-outline"
+    return "cart-outline"
