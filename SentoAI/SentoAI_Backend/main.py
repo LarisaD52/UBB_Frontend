@@ -269,3 +269,16 @@ def _pick_icon(sub: str, title: str) -> str:
     if "întreținere" in text or "bloc" in text:
         return "home-outline"
     return "cart-outline"
+
+@app.get("/ai-controls")
+def get_ai_controls():
+    return get_db().get("ai_controls", {})
+
+@app.post("/ai-controls")
+async def set_ai_controls(request: Request):
+    ai_controls = await request.json()
+    db = get_db()
+    db["ai_controls"] = ai_controls
+    save_db(db)
+    return {"status": "ok"}
+ 
