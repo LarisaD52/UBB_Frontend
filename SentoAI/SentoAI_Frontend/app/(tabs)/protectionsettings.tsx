@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function ProtectionSettingsScreen() {
@@ -8,11 +8,77 @@ export default function ProtectionSettingsScreen() {
   
   // State-uri actualizate
   const [sumeMari, setSumeMari] = useState(true);
-  const [limitaSuma, setLimitaSuma] = useState('500'); // Suma fixă pentru limită
+  const [limitaSuma, setLimitaSuma] = useState("0"); // Suma fixă pentru limită
   const [persoaneNoi, setPersoaneNoi] = useState(true);
   const [protectieLink, setProtectieLink] = useState(true);
   const [limitNoapte, setLimitNoapte] = useState(false);
   const [confirmareFamilie, setConfirmareFamilie] = useState(false);
+
+  const fetchAiControls = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/ai-controls");
+      const data = await response.json();
+      setSumeMari(data.max_limit.enabled);
+      setLimitaSuma(data.max_limit.amount);
+      setPersoaneNoi(data.verify_new_beneficiary.enabled)
+      setProtectieLink(data.block_risky_messages.enabled)
+      setConfirmareFamilie(data.block_risky_messages.request_family_help.enabled)
+      setLimitNoapte(data.quiet_on_night.enabled)
+    } catch (error) {
+      console.error("Error fetching ai controls:", error);
+    } finally {
+    }
+  }
+
+  const saveAiControls = async () => {
+    try {
+      const payload = {
+        max_limit: {
+          enabled: sumeMari,
+          amount: Number(limitaSuma) || 0
+        },
+        verify_new_beneficiary: {
+          enabled: persoaneNoi
+        },
+        block_risky_messages: {
+          enabled: protectieLink,
+          request_family_help: {
+            enabled: confirmareFamilie
+          }
+        },
+        quiet_on_night: {
+          enabled: limitNoapte
+        }
+      };
+
+      // Use POST if backend route is @app.post("/ai-controls")
+      const response = await fetch("http://localhost:8000/ai-controls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error("Error saving ai controls:", errText);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error saving ai controls:", error);
+      return false;
+    }
+  };
+
+  const saveControls = async () => {
+    const ok = await saveAiControls();
+    if (ok) router.back();
+  };
+
+  useEffect(() => {
+    fetchAiControls()
+  }, [])
 
   return (
     <View style={styles.container}>
@@ -44,7 +110,7 @@ export default function ProtectionSettingsScreen() {
               <TextInput
                 style={styles.textBox}
                 value={limitaSuma}
-                onChangeText={setLimitaSuma}
+                onChangeText={(text) => setLimitaSuma(text)}
                 keyboardType="numeric"
                 placeholder="Ex: 500"
               />
@@ -74,11 +140,11 @@ export default function ProtectionSettingsScreen() {
           </View>
           
           {/* Sub-opțiune pentru ajutor familie, legată de fraude */}
-          <View style={styles.subRow}>
+          {protectieLink && <View style={styles.subRow}>
             <Ionicons name="people-circle-outline" size={20} color="#2D7482" />
             <Text style={styles.subLabel}>Cere ajutor familiei în caz de fraudă</Text>
             <Switch value={confirmareFamilie} onValueChange={setConfirmareFamilie} trackColor={{ false: "#E2E8F0", true: "#2D7482" }} />
-          </View>
+          </View>}
         </View>
 
         {/* 4. LIMITA DE NOAPTE */}
@@ -96,6 +162,10 @@ export default function ProtectionSettingsScreen() {
           <Ionicons name="shield-checkmark" size={20} color="#2D7482" />
           <Text style={styles.footerText}>Sento AI lucrează non-stop pentru liniștea ta.</Text>
         </View>
+
+        <TouchableOpacity style={styles.saveBtn} onPress={saveControls}>
+          <Text style={styles.saveBtnText}>Salvează și Instruiește AI</Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -125,5 +195,15 @@ const styles = StyleSheet.create({
   subLabel: { flex: 1, fontSize: 14, fontWeight: '600', color: '#2D7482' },
   
   footerInfo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20 },
-  footerText: { fontSize: 14, color: '#2D7482', fontWeight: '600' }
+  footerText: { fontSize: 14, color: '#2D7482', fontWeight: '600' },
+
+  saveBtn: {
+    backgroundColor: "#2D7482",
+    padding: 22,
+    borderRadius: 20,
+    alignItems: "center",
+    marginTop: 30,
+    marginBottom: 40,
+  },
+  saveBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" }
 });
