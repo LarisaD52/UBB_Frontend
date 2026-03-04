@@ -171,6 +171,134 @@ async def process_audio(audio: UploadFile = File(...)):
         print(f"Eroare Audio: {e}")
         return {"action": "SPEAK_ONLY", "speech": "Maria, te rog să repeți, nu am putut procesa vocea."}
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+# Endpoint pentru a obține lista de contacte
+@app.get("/contacts")
+def get_contacts():
+    db = get_db()
+    return db.get("contacts", [])
+
+
+# Endpoint pentru a adăuga un contact nou
+@app.post("/contacts")
+def add_contact(contact: dict = Body(...)):
+    db = get_db()
+    contacts = db.get("contacts", [])
+    # Simplu: adăugăm obiectul primit în listă și salvăm
+    contacts.append(contact)
+    db["contacts"] = contacts
+    save_db(db)
+    return {"status": "ok", "contact": contact}
+
+
+# Endpoint pentru a șterge un contact (după nume)
+@app.delete("/contacts")
+def delete_contact(payload: dict = Body(...)):
+    name = payload.get("nume") or payload.get("name")
+    if not name:
+        raise HTTPException(status_code=400, detail="Missing 'nume' in payload")
+    db = get_db()
+    contacts = db.get("contacts", [])
+    new_contacts = [c for c in contacts if (c.get("nume") or c.get("name")) != name]
+    deleted_count = len(contacts) - len(new_contacts)
+    db["contacts"] = new_contacts
+    save_db(db)
+    return {"status": "ok", "deleted": deleted_count}
+
+@app.post("/process-voice")
+async def process_voice(data: dict):
+    return await handle_logic_for_transcript(data.get("transcript", ""))
+
+@app.get("/restrictions")
+async def get_restrictions():
+    return get_db().get("restrictions", [])
+
+@app.put("/restrictions")
+async def update_restrictions(request: Request):
+    restrictions = await request.json()
+    db = get_db()
+    db["restrictions"] = restrictions
+    save_db(db)
+    return {"status": "ok"}
+
+@app.get("/transactions")
+async def get_transactions():
+    return get_db().get("transactions", [])
+
+@app.post("/make-transaction")
+async def make_transaction(request: Request):
+    payload = await request.json()
+    db = get_db()
+
+    if "transactions" not in db or not isinstance(db["transactions"], list):
+        db["transactions"] = []
+
+    tx = payload.get("transaction") if isinstance(payload, dict) and "transaction" in payload else payload
+    if not isinstance(tx, dict):
+        return {"status": "error", "message": "Invalid payload. Expected a JSON object."}
+
+    # Accept both old/new input keys
+    raw_amount = tx.get("amount")
+    if raw_amount is None:
+        return {"status": "error", "message": "Missing field: amount"}
+
+    try:
+        amount_value = float(str(raw_amount).replace(",", "."))
+    except ValueError:
+        return {"status": "error", "message": "Invalid amount"}
+
+    title = tx.get("title") or tx.get("name")
+    if not title:
+        return {"status": "error", "message": "Missing field: title/name"}
+
+    sub = tx.get("sub") or tx.get("category") or "Transfer"
+    tx_type = tx.get("type", "out")
+    currency = tx.get("currency", "RON")
+
+    # next numeric id based on existing format
+    max_id = 0
+    for t in db["transactions"]:
+        try:
+            max_id = max(max_id, int(str(t.get("id", "0"))))
+        except ValueError:
+            pass
+    next_id = str(max_id + 1)
+
+    new_transaction = {
+        "id": next_id,
+        "title": title,
+        "sub": sub,
+        "amount": _format_amount_ro(amount_value, tx_type, currency),
+        "type": tx_type,
+        "date": tx.get("date", _format_date_ro_short(datetime.now())),
+        "icon": tx.get("icon", _pick_icon(sub, title))
+    }
+
+    db["transactions"].insert(0, new_transaction)  # newest first
+    save_db(db)
+
+    return {"status": "ok", "transaction": new_transaction}
+
+def _format_date_ro_short(dt: datetime) -> str:
+    months = ["Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Noi", "Dec"]
+    return f"{dt.day:02d} {months[dt.month - 1]}"
+
+def _format_amount_ro(amount: float, tx_type: str = "out", currency: str = "RON") -> str:
+    sign = "+" if tx_type == "in" else "-"
+    s = f"{abs(amount):,.2f}"  # 1,234.50
+    s = s.replace(",", "X").replace(".", ",").replace("X", ".")  # 1.234,50
+    return f"{sign}{s} {currency}"
+
+def _pick_icon(sub: str, title: str) -> str:
+    text = f"{sub} {title}".lower()
+    if "utilit" in text or "enel" in text:
+        return "flash-outline"
+    if "farmac" in text or "sănăt" in text:
+        return "medical-outline"
+    if "transfer" in text or "familie" in text or "persoan" in text:
+        return "person-outline"
+    if "abonament" in text or "digi" in text:
+        return "tv-outline"
+    if "întreținere" in text or "bloc" in text:
+        return "home-outline"
+    return "cart-outline"

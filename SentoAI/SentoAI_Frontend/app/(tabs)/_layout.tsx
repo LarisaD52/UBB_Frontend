@@ -42,6 +42,7 @@ export default function TabLayout() {
       {/* Verifică în folderul app/(tabs) dacă fișierul se numește exact așa */}
       <Tabs.Screen name="consumeprocessing" options={{ href: null }} />
       <Tabs.Screen name="modal" options={{ href: null }} />
+      <Tabs.Screen name="consumeprofile" options={{ href: null }} />
       
       {/* Restul paginilor auxiliare */}
       <Tabs.Screen name="assistant" options={{ href: null }} />
