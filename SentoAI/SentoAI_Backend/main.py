@@ -179,8 +179,6 @@ async def process_audio(audio: UploadFile = File(...)):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-        print(f"Eroare: {e}")
-        return {"action": "SPEAK_ONLY", "speech": "Eroare tehnică la procesarea vocii."}
 
 
 # Endpoint pentru a obține lista de contacte
