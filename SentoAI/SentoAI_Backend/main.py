@@ -173,3 +173,4 @@ async def process_audio(audio: UploadFile = File(...)):
         return process_logic(transcript)
     except:
         return {"action": "SPEAK_ONLY", "speech": "Eroare audio, Maria."}
+    
