@@ -56,7 +56,7 @@
     {
       "id": 1,
       "text": "Am detectat o tranzacție suspectă și am protejat contul tău. Revizuiește detaliile.",
-      "read": true
+      "read": false
     },
     {
       "id": 2,
@@ -367,4 +367,5 @@
       "icon": "cart-outline"
     }
   ]
+  
 }

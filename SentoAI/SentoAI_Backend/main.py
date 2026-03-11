@@ -20,6 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Stocăm starea sesiunii pentru Maria (nume, iban, suma)
 user_states = {}
 
 def get_db():
@@ -29,8 +30,21 @@ def get_db():
         with open(db_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except:
-        # Fallback structura in caz de eroare
-        return {"contacts": [], "notifications": [], "user_profile": {"balance": 2500}}
+        return {
+            "contacts": [{"nume": "Adrian", "iban": "RO123456789"}], 
+            "notifications": [{"id": "1", "text": "Ai primit pensia în cont.", "read": False}],
+            "user_profile": {"balance": 2500}
+        }
+
+def save_db(db):
+    base_path = os.path.dirname(__file__)
+    db_path = os.path.join(base_path, 'database.json')
+    try:
+        with open(db_path, "w", encoding="utf-8") as f:
+            json.dump(db, f, indent=2, ensure_ascii=False)
+            return True
+    except:
+        return False
 
 def save_db(db):
     base_path = os.path.dirname(__file__)
@@ -43,8 +57,7 @@ def save_db(db):
 def normalize(text):
     return text.lower().strip()
 
-async def handle_logic_for_transcript(transcript: str):
-    text = normalize(transcript)
+def find_contact(name):
     db = get_db()
     for c in db.get("contacts", []):
         if name.lower() in c["nume"].lower():
@@ -58,100 +71,107 @@ def process_logic(transcript):
     user_id = "maria_default"
     db = get_db()
     
-    # 0. COMANDA GLOBALĂ: ANULARE
-    if any(x in transcript for x in ["anulează", "oprește", "acasă", "renunță"]):
-        user_states[user_id] = {"step": "IDLE"}
-        return {"action": "NAVIGATE_WITH_DATA", "target": "/", "speech": "Am anulat operațiunea. Cu ce te mai pot ajuta?"}
+    # Inițializare stare dacă nu există
+    if user_id not in user_states:
+        user_states[user_id] = {"step": "IDLE", "data": {"nume": "", "iban": "", "suma": ""}}
 
-    # 1. LOGICĂ NOTIFICĂRI (Citire ultima necitită + Navigare)
-    if any(x in transcript for x in ["notificare", "mesaj", "notificarea", "ce am primit"]):
-        # Căutăm notificările care au "read": false sau lipsă
-        # Presupunem că punctul albastru din UI se bazează pe proprietatea "read"
+    # 0. COMANDA: ANULARE (Resetare totală)
+    if any(x in transcript for x in ["anulează", "oprește", "acasă", "renunță"]):
+        user_states[user_id] = {"step": "IDLE", "data": {"nume": "", "iban": "", "suma": ""}}
+        return {"action": "NAVIGATE_WITH_DATA", "target": "/", "speech": "Am anulat operațiunea."}
+
+    # 1. COMANDA: NOTIFICĂRI
+    if any(x in transcript for x in ["notificare", "mesaj", "ce am primit", "citește"]):
         notifications = db.get("notifications", [])
         unread = [n for n in notifications if n.get("read") == False]
-        
         if unread:
-            # Luăm cea mai recentă notificare necitită (ultima din listă)
             target_notif = unread[-1]
-            mesaj_text = target_notif.get("text", "Mesaj fără conținut")
-            
-            # Marcăm notificarea ca citită în baza de date
-            for idx, n in enumerate(db["notifications"]):
+            for n in db["notifications"]:
                 if n.get("id") == target_notif.get("id"):
-                    db["notifications"][idx]["read"] = True
-            
-            # Salvăm modificarea pentru ca punctul albastru să dispară
+                    n["read"] = True
             save_db(db)
-            
-            return {
-                "action": "NAVIGATE_WITH_DATA", 
-                "target": "/notifications", 
-                "speech": f"Maria, ai o notificare necitită care spune: {mesaj_text}. Te duc acum să vezi toate mesajele.",
-                "data": {"highlightId": target_notif.get("id")}
-            }
-        else:
-            return {"action": "SPEAK_ONLY", "speech": "Maria, nu ai nicio notificare necitită nouă."}
-
-    # 2. LOGICĂ TRANSFER (Mașina de stări)
-    state = user_states.get(user_id, {"step": "IDLE", "data": {"nume": "", "iban": "", "suma": ""}})
-
-    # PAS 1: Declanșare Transfer
-    if "transfer" in transcript and state["step"] == "IDLE":
-        user_states[user_id] = {"step": "ASK_TYPE"}
-        return {"action": "SPEAK_ONLY", "speech": "Maria, vrei să trimiți bani unei persoane noi sau cuiva din listă?"}
-
-    # PAS 2: Tip Beneficiar
-    if state["step"] == "ASK_TYPE":
-        if "nou" in transcript:
-            user_states[user_id] = {"step": "COLLECT_NAME_NEW", "data": {"nume": "", "iban": "", "suma": ""}}
-            return {"action": "UPDATE_UI", "speech": "Am înțeles. Spune-mi numele persoanei noi.", "data": {"nume": ""}}
-        else:
-            user_states[user_id] = {"step": "COLLECT_NAME_EXISTING"}
-            return {"action": "SPEAK_ONLY", "speech": "Spune-mi numele persoanei din lista ta de contacte."}
-
-    # PAS 3: Colectare Nume
-    if state["step"] == "COLLECT_NAME_NEW":
-        name = transcript.title()
-        user_states[user_id]["data"]["nume"] = name
-        user_states[user_id]["step"] = "COLLECT_IBAN"
-        return {"action": "UPDATE_UI", "speech": f"Am notat numele {name}. Te rog să-mi spui codul IBAN.", "data": {"nume": name}}
-    
-    if state["step"] == "COLLECT_NAME_EXISTING":
-        contact = find_contact(transcript)
-        if contact:
-            user_states[user_id] = {"step": "COLLECT_SUM", "data": contact}
-            return {"action": "UPDATE_UI", "speech": f"L-am găsit pe {contact['nume']} în contacte. Ce sumă trimitem?", "data": contact}
-        return {"action": "SPEAK_ONLY", "speech": "Maria, nu am găsit acest nume. Încearcă din nou sau zi 'persoană nouă'."}
-
-    # PAS 4: Colectare IBAN
-    if state["step"] == "COLLECT_IBAN":
-        iban = transcript.upper().replace(" ", "")
-        user_states[user_id]["data"]["iban"] = iban
-        user_states[user_id]["step"] = "COLLECT_SUM"
-        return {"action": "UPDATE_UI", "speech": "Am introdus IBAN-ul. Ce sumă dorești să trimiți?", "data": {"iban": iban}}
-
-    # PAS 5: Colectare Sumă & Finalizare
-    if state["step"] == "COLLECT_SUM":
-        amounts = re.findall(r'\d+', transcript)
-        if amounts:
-            suma = amounts[0]
-            final_data = user_states[user_id]["data"]
-            user_states[user_id] = {"step": "IDLE"} # Reset state la final
             return {
                 "action": "NAVIGATE_WITH_DATA",
-                "target": "/transfer-confirm",
-                "speech": f"Am pregătit transferul de {suma} lei către {final_data['nume']}. Confirmi?",
-                "data": {**final_data, "suma": f"{suma} lei"}
+                "target": "/notifications",
+                "speech": f"Maria, ultima notificare spune: {target_notif.get('text')}.",
+                "data": {"highlightId": target_notif.get("id")}
             }
+        return {"action": "SPEAK_ONLY", "speech": "Nu ai mesaje noi."}
 
-    # 3. INTEROGARE SOLD
+    # 2. COMANDA: SOLD
     if any(x in transcript for x in ["sold", "balanță", "câți bani", "cont"]):
         balance = db["user_profile"]["balance"]
         return {"action": "SPEAK_ONLY", "speech": f"Maria, în contul tău sunt {balance} lei."}
 
-    return {"action": "SPEAK_ONLY", "speech": "Te ascult, Maria. Spune-mi ce dorești să facem: un transfer, citirea mesajelor sau verificarea soldului?"}
+    # 3. COMANDA: SETĂRI
+    if any(x in transcript for x in ["setări", "contacte", "încredere"]):
+        contacts = db.get("contacts", [])
+        nume_contacte = ", ".join([c["nume"] for c in contacts])
+        return {
+            "action": "NAVIGATE_WITH_DATA",
+            "target": "/settings",
+            "speech": f"Iată setările tale. Contactele de încredere sunt: {nume_contacte}.",
+            "data": {}
+        }
 
-# --- RUTE API ---
+    # 4. LOGICĂ TRANSFER (FLUX PAS CU PAS)
+    state = user_states[user_id]
+
+    # PAS: Start
+    if "transfer" in transcript and state["step"] == "IDLE":
+        state["step"] = "ASK_TYPE"
+        return {"action": "SPEAK_ONLY", "speech": "Maria, vrei o persoană nouă sau din listă?"}
+
+    # PAS: Tip Beneficiar
+    if state["step"] == "ASK_TYPE":
+        if "nou" in transcript:
+            state["step"] = "COLLECT_NAME_NEW"
+            return {"action": "UPDATE_UI", "speech": "Spune-mi numele persoanei noi.", "data": {"nume": "", "iban": "", "suma": ""}}
+        else:
+            state["step"] = "COLLECT_NAME_EXISTING"
+            return {"action": "SPEAK_ONLY", "speech": "Spune-mi numele din contacte."}
+
+    # PAS: Colectare Nume (Persoană Nouă) -> Update UI instant
+    if state["step"] == "COLLECT_NAME_NEW":
+        name = transcript.title()
+        state["data"]["nume"] = name
+        state["step"] = "COLLECT_IBAN"
+        return {"action": "UPDATE_UI", "speech": f"Am notat numele {name}. Acum spune-mi codul IBAN.", "data": state["data"]}
+    
+    # PAS: Colectare Nume (Existent)
+    if state["step"] == "COLLECT_NAME_EXISTING":
+        contact = find_contact(transcript)
+        if contact:
+            state["data"] = {"nume": contact["nume"], "iban": contact["iban"], "suma": ""}
+            state["step"] = "COLLECT_SUM"
+            return {"action": "UPDATE_UI", "speech": f"L-am găsit pe {contact['nume']}. Ce sumă trimitem?", "data": state["data"]}
+        return {"action": "SPEAK_ONLY", "speech": "Nu l-am găsit. Repetă numele."}
+
+    # PAS: Colectare IBAN -> Update UI instant
+    if state["step"] == "COLLECT_IBAN":
+        iban = transcript.upper().replace(" ", "")
+        state["data"]["iban"] = iban
+        state["step"] = "COLLECT_SUM"
+        return {"action": "UPDATE_UI", "speech": "IBAN salvat. Ce sumă trimiți?", "data": state["data"]}
+
+    # PAS: Colectare Sumă -> Finalizare și Navigare
+    if state["step"] == "COLLECT_SUM":
+        amounts = re.findall(r'\d+', transcript)
+        if amounts:
+            suma = amounts[0]
+            state["data"]["suma"] = f"{suma} lei"
+            final_payload = dict(state["data"])
+            # Resetăm starea pentru următoarea utilizare
+            user_states[user_id] = {"step": "IDLE", "data": {"nume": "", "iban": "", "suma": ""}}
+            
+            return {
+                "action": "NAVIGATE_WITH_DATA",
+                "target": "/transfer-confirm",
+                "speech": f"Am completat datele. Confirmi transferul de {suma} lei către {final_payload['nume']}?",
+                "data": final_payload
+            }
+
+    return {"action": "SPEAK_ONLY", "speech": "Te ascult, Maria."}
 
 @app.post("/process-voice")
 async def process_voice(data: dict):
@@ -172,10 +192,9 @@ async def process_audio(audio: UploadFile = File(...)):
             
         transcript = r.recognize_google(recorded, language="ro-RO")
         return process_logic(transcript)
-    except Exception as e:
-        print(f"Eroare Audio: {e}")
-        return {"action": "SPEAK_ONLY", "speech": "Maria, te rog să repeți, nu am putut procesa vocea."}
-
+    except:
+        return {"action": "SPEAK_ONLY", "speech": "Eroare audio, Maria."}
+    
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
@@ -213,10 +232,6 @@ def delete_contact(payload: dict = Body(...)):
     db["contacts"] = new_contacts
     save_db(db)
     return {"status": "ok", "deleted": deleted_count}
-
-@app.post("/process-voice")
-async def process_voice(data: dict):
-    return await handle_logic_for_transcript(data.get("transcript", ""))
 
 @app.get("/restrictions")
 async def get_restrictions():
@@ -323,4 +338,4 @@ async def set_ai_controls(request: Request):
     db["ai_controls"] = ai_controls
     save_db(db)
     return {"status": "ok"}
- 
+    
