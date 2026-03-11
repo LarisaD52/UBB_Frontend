@@ -3,8 +3,11 @@ import { Audio } from 'expo-av';
 import { useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, Vibration, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, Vibration, View, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+// !!! Asigură-te că acest IP este cel corect din terminalul Metro !!!
+const SERVER_URL = 'http://192.168.1.209:8000'; 
 
 export default function AssistantScreen() {
   const router = useRouter();
@@ -14,13 +17,20 @@ export default function AssistantScreen() {
 
   useEffect(() => {
     (async () => {
-      await Audio.requestPermissionsAsync();
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== 'granted') {
+        setStatusText("Avem nevoie de permisiune pentru microfon");
+      }
     })();
     return () => { Speech.stop(); };
   }, []);
 
   const aiSpeak = (text: string) => {
-    Speech.speak(text, { language: 'ro-RO', rate: 0.85, onStart: () => setStatusText(text) });
+    Speech.speak(text, { 
+        language: 'ro-RO', 
+        rate: 0.85, 
+        onStart: () => setStatusText(text) 
+    });
   };
 
   async function handleStart() {
@@ -38,7 +48,7 @@ export default function AssistantScreen() {
       setIsListening(true);
       setStatusText("Te ascult, Maria...");
     } catch (err) {
-      console.error("Eroare Start:", err);
+      console.error("Eroare Start Recording:", err);
     }
   }
 
@@ -55,7 +65,7 @@ export default function AssistantScreen() {
         uploadAudio(uri);
       }
     } catch (err) {
-      console.error("Eroare Stop:", err);
+      console.error("Eroare Stop Recording:", err);
     }
   }
 
@@ -64,15 +74,14 @@ export default function AssistantScreen() {
       setStatusText("Sento procesează vocea...");
       
       const formData = new FormData();
-      // @ts-ignore - necesar pentru ca react-native să accepte obiectul de tip fișier
+      // @ts-ignore
       formData.append('audio', {
         uri: uri,
         type: 'audio/m4a',
         name: 'comanda_maria.m4a',
       });
 
-      // Se trimite către ruta /process-audio configurată în main.py
-      const response = await fetch('http://172.20.10.6:8000/process-audio', {
+      const response = await fetch(`${SERVER_URL}/process-audio`, {
         method: 'POST',
         body: formData,
         headers: {
@@ -80,19 +89,27 @@ export default function AssistantScreen() {
         },
       });
 
+      if (!response.ok) throw new Error("Server offline");
+
       const result = await response.json();
       
+      // LOGICĂ NOUĂ: Dacă utilizatorul vrea transfer, îl trimitem în chat pentru detalii
       if (result.action === "NAVIGATE_WITH_DATA") {
         aiSpeak(result.speech);
+        
+        // Așteptăm să termine de vorbit înainte de a schimba ecranul
         setTimeout(() => {
-          router.push({ pathname: result.target, params: result.data || {} });
-        }, 1500);
+          router.push({ 
+            pathname: result.target as any, 
+            params: result.data || {} 
+          });
+        }, 2000);
       } else {
-        // Pentru acțiuni de tip SPEAK_ONLY (ex: interogare sold)
+        // Pentru întrebări simple (ex: "Câți bani am?")
         aiSpeak(result.speech);
       }
     } catch (error) {
-      console.error("Eroare Upload:", error);
+      console.error("Eroare Upload Audio:", error);
       aiSpeak("Eroare de conexiune cu serverul Sento.");
     }
   };
@@ -107,14 +124,19 @@ export default function AssistantScreen() {
           <Text style={styles.infoText}>{statusText}</Text>
         </View>
 
-        {/* Buton central mare pentru accesibilitate */}
+        {/* Buton central mare optimizat pentru seniori */}
         <TouchableOpacity 
-          onPressIn={handleStart} 
+          onLongPress={handleStart} 
           onPressOut={handleStop}
+          onPress={() => !isListening && handleStart()} // Permite și simplu click dacă long press e greu
           activeOpacity={0.7}
           style={[styles.micCircle, isListening && styles.micCircleActive]}
         >
-          <Ionicons name={isListening ? "stop" : "mic"} size={70} color={isListening ? "#fff" : "#2D7482"} />
+          <Ionicons 
+            name={isListening ? "stop" : "mic"} 
+            size={70} 
+            color={isListening ? "#fff" : "#2D7482"} 
+          />
         </TouchableOpacity>
 
         <View style={styles.buttonRow}>
@@ -131,7 +153,7 @@ export default function AssistantScreen() {
           )}
         </View>
 
-        <Text style={styles.hint}>Ține apăsat pe cerc sau folosește butoanele</Text>
+        <Text style={styles.hint}>Apasă START și spune: "Vreau să fac un transfer"</Text>
       </View>
     </SafeAreaView>
   );
@@ -162,5 +184,5 @@ const styles = StyleSheet.create({
   btnStart: { backgroundColor: '#2D7482', flexDirection: 'row', padding: 20, borderRadius: 15, alignItems: 'center', gap: 10, width: 145, justifyContent: 'center' },
   btnStop: { backgroundColor: '#C53030', flexDirection: 'row', padding: 20, borderRadius: 15, alignItems: 'center', gap: 10, width: 145, justifyContent: 'center' },
   btnText: { color: '#fff', fontWeight: 'bold', fontSize: 17 },
-  hint: { marginTop: 35, color: '#64748B', fontSize: 15, fontWeight: '500' }
+  hint: { marginTop: 35, color: '#64748B', fontSize: 15, fontWeight: '500', textAlign: 'center' }
 });
