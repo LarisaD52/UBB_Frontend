@@ -199,6 +199,11 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 26,
   },
+  micCircle: { 
+    width: 160, height: 160, borderRadius: 80, backgroundColor: '#EBF5F6', 
+    justifyContent: 'center', alignItems: 'center', marginBottom: 40, 
+    elevation: 8, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10 
+  },
   micCircleActive: { backgroundColor: '#C53030', transform: [{ scale: 1.1 }] },
   buttonRow: { flexDirection: 'row', gap: 20 },
   btnStart: { backgroundColor: '#2D7482', flexDirection: 'row', padding: 20, borderRadius: 15, alignItems: 'center', gap: 10, width: 145, justifyContent: 'center' },
