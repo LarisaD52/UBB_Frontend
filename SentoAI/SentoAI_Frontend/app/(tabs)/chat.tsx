@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
 
 // !!! Asigură-te că acest IP este cel corect din terminalul Metro !!!
-const SERVER_URL = 'http://192.168.1.209:8000'; 
+const SERVER_URL = 'http://localhost:8000'; 
 
 export default function ChatAssistantScreen() {
   const router = useRouter();

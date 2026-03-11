@@ -56,12 +56,12 @@
     {
       "id": 1,
       "text": "Am detectat o tranzacție suspectă și am protejat contul tău. Revizuiește detaliile.",
-      "read": false
+      "read": true
     },
     {
       "id": 2,
       "text": "Transferul de 850 de lei către Ion Proprietar a fost realizat.",
-      "read": true
+      "read": false
     },
     {
       "id": 3,
@@ -367,5 +367,4 @@
       "icon": "cart-outline"
     }
   ]
-  
 }

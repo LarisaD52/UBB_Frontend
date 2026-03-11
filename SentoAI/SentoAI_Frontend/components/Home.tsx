@@ -26,7 +26,8 @@ export default function Home() {
 
   const fetchTransactions = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:8000/transactions");
+      const SERVER_IP = "localhost"; // Înlocuiește cu IP-ul corect dacă e necesar 
+      const response = await fetch(`http://${SERVER_IP}:8000/transactions`);
       const data = await response.json();
       const list = Array.isArray(data) ? data : (data?.transactions ?? []);
       setTransactions(Array.isArray(list) ? list.slice(0, 5) : []);
