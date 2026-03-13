@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Modal } from 'react-native';
 
 // IMPORTUL CORECT (verifică numărul de puncte în funcție de eroare)
@@ -14,6 +14,24 @@ export default function TransferScreen() {
   const [alertReason, setAlertReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [sumeMari, setSumeMari] = useState(false);
+  const [limitaSuma, setLimitaSuma] = useState(0);
+
+  const fetchAiControls = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/ai-controls");
+      const data = await response.json();
+      setSumeMari(data.max_limit.enabled);
+      setLimitaSuma(data.max_limit.amount);
+    } catch (error) {
+      console.error("Error fetching ai controls:", error);
+    } finally {
+    }
+  }
+  
+  useEffect(() => {
+      fetchAiControls()
+  }, [])
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -28,7 +46,7 @@ export default function TransferScreen() {
       return;
     }
 
-    if (numericAmount > 1000) {
+    if (sumeMari && numericAmount > limitaSuma) {
       setAlertReason("Suma este mult mai mare decât plățile tale obișnuite din ultimele 2 luni.");
       setShowAlert(true);
       return;

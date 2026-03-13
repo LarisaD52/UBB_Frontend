@@ -299,6 +299,10 @@ async def make_transaction(request: Request):
     }
 
     db["transactions"].insert(0, new_transaction)  # newest first
+
+    current_balance = float(db["user_profile"].get("balance", 0))
+    db["user_profile"]["balance"] = f"{current_balance - amount_value:.2f}"
+
     save_db(db)
 
     return {"status": "ok", "transaction": new_transaction}
@@ -338,4 +342,8 @@ async def set_ai_controls(request: Request):
     db["ai_controls"] = ai_controls
     save_db(db)
     return {"status": "ok"}
+    
+@app.get("/me")
+async def get_balance(request: Request):
+    return get_db().get("user_profile", {})
     
