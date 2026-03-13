@@ -24,6 +24,17 @@ export default function Home() {
   const isFocused = useIsFocused();
   const wasFocused = useRef(false);
 
+  const fetchUserDetails = useCallback(async () => {
+    try {
+      const SERVER_IP = "localhost"; // Înlocuiește cu IP-ul corect dacă e necesar 
+      const response = await fetch(`http://${SERVER_IP}:8000/me`);
+      const data = await response.json();
+      setCurrentBalance(data.balance)
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+    }
+  }, []);
+
   const fetchTransactions = useCallback(async () => {
     try {
       const SERVER_IP = "localhost"; // Înlocuiește cu IP-ul corect dacă e necesar 
@@ -39,6 +50,7 @@ export default function Home() {
   useEffect(() => {
     // runs once when screen becomes focused (not continuously)
     if (isFocused && !wasFocused.current) {
+      fetchUserDetails();
       fetchTransactions();
     }
     wasFocused.current = isFocused;
