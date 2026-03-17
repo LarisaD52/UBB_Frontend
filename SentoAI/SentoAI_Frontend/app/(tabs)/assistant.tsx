@@ -7,7 +7,7 @@ import { StyleSheet, Text, TouchableOpacity, Vibration, View, Platform } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // !!! Asigură-te că acest IP este cel corect din terminalul Metro !!!
-const SERVER_URL = 'http://localhost:8000'; 
+const SERVER_URL = 'http://192.168.1.209:8000'; 
 
 export default function AssistantScreen() {
   const router = useRouter();
@@ -85,7 +85,7 @@ export default function AssistantScreen() {
         name: "comanda_maria.m4a",
       });
 
-      const response = await fetch("http://localhost:8000/process-audio", {
+      const response = await fetch("http://192.168.1.209:8000/process-audio", {
         method: 'POST',
         body: formData,
         headers: {
