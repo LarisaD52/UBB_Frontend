@@ -19,7 +19,7 @@ export default function TransferScreen() {
 
   const fetchAiControls = async () => {
     try {
-      const response = await fetch("http://localhost:8000/ai-controls");
+      const response = await fetch("http://exp://192.168.1.209:8081:8000/ai-controls");
       const data = await response.json();
       setSumeMari(data.max_limit.enabled);
       setLimitaSuma(data.max_limit.amount);

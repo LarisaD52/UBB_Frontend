@@ -93,14 +93,77 @@ def process_logic(transcript):
             }
 
     # --- COMENZI SIMPLE ---
-    if any(x in transcript for x in ["notificare", "mesaj", "ce am primit"]):
-        # ... (codul tău pentru notificări rămâne neschimbat)
-        pass
+    
 
+    # --- 1. COMANDA: NOTIFICĂRI ---
+    # --- 1. COMANDA: NOTIFICĂRI (MODIFICATĂ PENTRU ASISTENT) ---
+    # --- 1. COMANDA: NOTIFICĂRI (DINAMIC DIN DB) ---
+    if any(x in transcript for x in ["notificare", "mesaj", "ce am primit", "citește"]):
+        db = get_db()
+        # Căutăm notificările necitite
+        unread = [n for n in db.get("notifications", []) if n.get("read") == False]
+        
+        if unread:
+            target_notif = unread[0] # Luăm prima notificare necitită
+            
+            # Luăm textul direct din obiectul din baza de date
+            continut_notificare = target_notif.get("text", "Mesaj fără conținut")
+            
+            # Marcăm ca citită în baza de date
+            for n in db["notifications"]:
+                if n.get("id") == target_notif.get("id"):
+                    n["read"] = True
+            save_db(db)
+            
+            # Setăm starea pentru a aștepta răspunsul DA/NU
+            user_states[user_id] = {"step": "ASK_MORE", "data": {}}
+            
+            # CONSTRUIM MESAJUL VOCAL CU DATELE DIN DB
+            return {
+                "action": "NAVIGATE_WITH_DATA",
+                "target": "/notifications",
+                "speech": f"Maria, ai o notificare nouă: {continut_notificare}. Te mai pot ajuta și cu altceva?",
+                "data": {
+                    "highlightId": target_notif.get("id")
+                }
+            }
+        else:
+            # Dacă nu sunt mesaje noi
+            user_states[user_id] = {"step": "ASK_MORE", "data": {}}
+            return {"action": "SPEAK_ONLY", "speech": "Maria, nu ai mesaje noi în acest moment. Te mai pot ajuta cu altceva?"}
+    # --- 2. LOGICĂ DUPĂ CITIRE (Revenire?) ---
+    if state["step"] == "POST_NOTIFICATION":
+        if any(x in transcript for x in ["da", "confirm", "revenim", "înapoi"]):
+            state["step"] = "ASK_MORE" # Trecem la pasul următor: Mai vrei ceva?
+            return {
+                "action": "NAVIGATE_WITH_DATA",
+                "target": "/assistant", # Te trimite înapoi la ecranul de voce
+                "speech": "Am revenit. Cu ce te mai pot ajuta?"
+            }
+        elif any(x in transcript for x in ["nu", "stai", "rămân"]):
+            user_states[user_id] = {"step": "IDLE", "data": {}}
+            return {"action": "SPEAK_ONLY", "speech": "În regulă, Maria. Rămânem aici."}
+
+    # --- 3. LOGICĂ DUPĂ REVENIRE (Mai vrei ceva?) ---
+    if state["step"] == "ASK_MORE":
+        # Dacă zice DA, resetăm la IDLE ca să poată da o comandă nouă
+        if any(x in transcript for x in ["da", "mai am", "stai", "vreau"]):
+            user_states[user_id] = {"step": "IDLE", "data": {}}
+            return {"action": "SPEAK_ONLY", "speech": "Te ascult, Maria. Cu ce să te ajut?"}
+        
+        # Dacă zice NU sau orice variantă de închidere
+        if any(x in transcript for x in ["nu", "nimic", "atât", "mulțumesc", "pa"]):
+            user_states[user_id] = {"step": "IDLE", "data": {}}
+            return {
+                "action": "NAVIGATE_WITH_DATA",
+                "target": "/", 
+                "speech": "Cu plăcere, Maria! Te-am întors în ecranul principal. Să ai o zi frumoasă!"
+            }
     if any(x in transcript for x in ["sold", "balanță", "câți bani"]):
         balance = db["user_profile"]["balance"]
-        return {"action": "SPEAK_ONLY", "speech": f"Maria, în contul tău sunt {balance} lei."}
-
+        # Setăm starea să aștepte confirmarea dacă mai vrea ceva
+        user_states[user_id] = {"step": "ASK_MORE", "data": {}}
+        return {"action": "SPEAK_ONLY", "speech": f"Maria, în contul tău sunt {balance} lei. Te mai pot ajuta și cu altceva?"}
     # --- FLUX TRANSFER (PAS CU PAS) ---
     
     # 1. Inițiere

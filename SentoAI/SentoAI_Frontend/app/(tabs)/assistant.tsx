@@ -162,17 +162,33 @@ async function stopAndCleanup(recordingToStop: Audio.Recording | null) {
     const result = await response.json();
     
     if (result.action === "NAVIGATE_WITH_DATA") {
-      // Navigăm la confirmare, nu mai ascultăm aici (va prelua celălalt ecran)
-      aiSpeak(result.speech, false); 
+      // 1. NAVIGĂM IMEDIAT (Ecranul se schimbă instant)
+      router.push({ 
+        pathname: result.target as any, 
+        params: result.data || {} 
+      });
+
+      // 2. AȘTEPTĂM O SECUNDĂ (ca ecranul nou să se încarce)
+      // și abia apoi pornim vocea
       setTimeout(() => {
-        router.push({ pathname: result.target as any, params: result.data || {} });
-      }, 2000);
+        Speech.speak(result.speech, {
+          language: 'ro-RO',
+          rate: 0.85,
+          onStart: () => setStatusText(result.speech),
+          onDone: () => {
+            // 3. După ce termină de vorbit, vibrează și o ascultă pentru DA/NU
+            Vibration.vibrate(100);
+            handleStart(); 
+          }
+        });
+      }, 1000); // 1000ms = 1 secundă de liniște până se încarcă noul ecran
+
     } else {
-      // Pentru întrebări simple, AI-ul răspunde și ASCULTĂ DIN NOU automat
+      // Pentru restul comenzilor (sold, etc.) care nu schimbă ecranul
       aiSpeak(result.speech, true); 
     }
   } catch (error) {
-    aiSpeak("Maria, am o problemă de conexiune. Mai spune-mi o dată.", true);
+    aiSpeak("Maria, am o problemă de conexiune.", true);
   }
 };
 
