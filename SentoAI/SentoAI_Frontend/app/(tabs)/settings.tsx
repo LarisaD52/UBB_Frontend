@@ -147,15 +147,14 @@ export default function SettingsScreen() {
         {isProtectionEnabled && (
           <View style={{ gap: 12, marginTop: 10 }}>
             <TouchableOpacity 
-              style={styles.specialAiButton} 
+              style={[styles.specialAiButton, { backgroundColor: '#fff', borderColor: '#E2E8F0' }]} 
               onPress={() => router.push('/protectionsettings')}
-              activeOpacity={0.7}
             >
               <View style={styles.specialAiIconContent}>
                  <Ionicons name="options-outline" size={22} color="#2D7482" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.specialAiTitle}>Personalizează limitele AI</Text>
+                <Text style={[styles.specialAiTitle, { color: '#1A1A1A' }]}>Personalizează limitele AI</Text>
                 <Text style={styles.specialAiSub}>Alege cum să te ajute Sento</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#2D7482" />
@@ -164,7 +163,6 @@ export default function SettingsScreen() {
             <TouchableOpacity 
               style={[styles.specialAiButton, { backgroundColor: '#fff', borderColor: '#E2E8F0' }]} 
               onPress={() => router.push('/consumeprofile')}
-              activeOpacity={0.7}
             >
               <View style={[styles.specialAiIconContent, { backgroundColor: '#F1F5F9' }]}>
                  <Ionicons name="person-circle-outline" size={22} color="#2D7482" />
@@ -173,7 +171,7 @@ export default function SettingsScreen() {
                 <Text style={[styles.specialAiTitle, { color: '#1A1A1A' }]}>Profilul meu de consum</Text>
                 <Text style={styles.specialAiSub}>Bifează ce NU cumperi niciodată</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+              <Ionicons name="chevron-forward" size={20} color="#2D7482" />
             </TouchableOpacity>
           </View>
         )}
@@ -297,7 +295,7 @@ const styles = StyleSheet.create({
   specialAiButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EBF5F6',
+    backgroundColor: '#fff',
     padding: 18,
     borderRadius: 24,
     borderWidth: 1,
@@ -318,7 +316,7 @@ const styles = StyleSheet.create({
   },
   specialAiTitle: { 
     fontSize: 16, 
-    fontWeight: '800', 
+    fontWeight: '700', 
     color: '#2D7482' 
   },
   specialAiSub: { 

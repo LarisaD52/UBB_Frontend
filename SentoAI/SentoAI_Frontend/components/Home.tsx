@@ -99,8 +99,8 @@ export default function Home() {
         <View style={styles.logoGroup}>
           <Image source={require('../assets/images/logo.jpg')} style={styles.logoImage} />
           <View>
-            <Text style={styles.logoText}>Sento AI</Text>
-            <Text style={styles.subLogo}>{isSenior ? "Împreună, în siguranță" : "Portal Nepot / Tutore"}</Text>
+            <Text style={styles.logoText}>Sento Bank</Text>
+            <Text style={styles.subLogo}>Împreună, în siguranță</Text>
           </View>
         </View>
         <View style={styles.headerIcons}>
@@ -121,7 +121,7 @@ export default function Home() {
         <TouchableOpacity style={styles.greetingRow} onPress={() => setShowUserMenu(!showUserMenu)}>
           <Ionicons name={showUserMenu ? "chevron-up" : "chevron-down"} size={20} color="#1A1A1A" style={{ marginRight: 10 }} />
           <View style={styles.avatarCircle}><Image source={currentUser.avatar} style={styles.avatarImage} /></View>
-          <Text style={styles.greetingName}>{currentUser.name} 👋</Text>
+          <Text style={styles.greetingName}>{currentUser.name}</Text>
         </TouchableOpacity>
 
         {showUserMenu && (
@@ -159,7 +159,7 @@ export default function Home() {
       )}
 
       {/* NOTIFICARE PHISHING */}
-      {isSenior && !phishingResolved && (
+      {/* {isSenior && !phishingResolved && (
         <TouchableOpacity style={styles.phishingAlert} onPress={() => router.push('/phishing-simulation')}>
           <Ionicons name="mail-unread" size={24} color="#C53030" />
           <View style={{ flex: 1 }}>
@@ -168,7 +168,7 @@ export default function Home() {
           </View>
           <Ionicons name="chevron-forward" size={20} color="#C53030" />
         </TouchableOpacity>
-      )}
+      )} */}
 
       {/* CARD SOLD */}
       <View style={[styles.balanceCard, { backgroundColor: currentUser.color }]}>
