@@ -27,12 +27,6 @@
       "relatie": "Frate",
       "iban": "RO12BTRL0000111122223333",
       "last_transfer": 200
-    },
-    {
-      "nume": "Nepotul Adi",
-      "relatie": "Nepot",
-      "iban": "RO99INGB0000444455556666",
-      "last_transfer": 50
     }
   ],
   "history_60_days": [
@@ -89,7 +83,7 @@
     {
       "id": "3",
       "label": "Tutun și Țigări",
-      "desc": "Chioșcuri de tutun și vapes",
+      "desc": "Magazine de tutun și vapes",
       "icon": "flame",
       "active": false,
       "isCustom": false

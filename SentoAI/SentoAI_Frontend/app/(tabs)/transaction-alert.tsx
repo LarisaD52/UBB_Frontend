@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal } from 'react-native';
 
 export default function TransactionAlert() {
   const router = useRouter();
@@ -14,18 +15,17 @@ export default function TransactionAlert() {
     category: "Comportament Neobișnuit / Alcool"
   };
 
+  const [isModalVisible, setIsModalVisible] = React.useState(false);
+  const [modalMessage, setModalMessage] = React.useState('');
+
   const handleDecision = (type: 'aprobat' | 'blocat') => {
-    Alert.alert(
-      type === 'aprobat' ? "Aprobat" : "Blocat",
-      `Decizia a fost trimisă. Alerta va fi eliminată din jurnal.`,
-      [{ 
-        text: "OK", 
-        onPress: () => router.replace({ 
-          pathname: '/', 
-          params: { userRole: 'adrian', actionTaken: 'true', fromAlert: 'true' } 
-        }) 
-      }]
-    );
+    if (type === 'blocat') {
+      setModalMessage('Tranzacția a fost blocată');
+      setIsModalVisible(true);
+    } else if (type === 'aprobat') {
+      setModalMessage('Tranzacția a fost aprobată');
+      setIsModalVisible(true);
+    }
   };
 
   return (
@@ -81,11 +81,50 @@ export default function TransactionAlert() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.callButton} onPress={() => Alert.alert("Apel", "Se sună...")}>
+        <TouchableOpacity style={styles.callButton} onPress={() => router.push({ pathname: "/", params: { userRole: 'adrian', actionTaken: 'true' }})}>
           <Ionicons name="call" size={20} color="#2D7482" />
           <Text style={styles.callButtonText}>Sună Maria pentru verificare</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <Modal
+        visible={isModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0,0,0,0.5)'
+        }}>
+          <View style={{
+            backgroundColor: '#fff',
+            padding: 24,
+            borderRadius: 16,
+            alignItems: 'center'
+          }}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>
+              {modalMessage}
+            </Text>
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#2D7482',
+                paddingVertical: 12,
+                paddingHorizontal: 32,
+                borderRadius: 8
+              }}
+              onPress={() => {
+                setIsModalVisible(false);
+                router.push({ pathname: "/", params: { userRole: 'adrian', actionTaken: 'true' } });
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

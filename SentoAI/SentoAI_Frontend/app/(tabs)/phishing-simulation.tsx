@@ -30,7 +30,7 @@ export default function PhishingSimulation() {
   return (
     <SafeAreaView style={styles.container}>
       {/* Bara de adrese "Browser" cu Săgeată de BACK */}
-      <View style={styles.browserBar}>
+      {/* <View style={styles.browserBar}>
         <TouchableOpacity 
           onPress={() => router.push('/')} 
           style={styles.backArrow}
@@ -44,7 +44,7 @@ export default function PhishingSimulation() {
         </View>
         
         <View style={{ width: 40 }} />
-      </View>
+      </View> */}
 
       <View style={styles.webContent}>
         <Text style={styles.logoFake}>Poșta Română</Text>
@@ -96,11 +96,11 @@ export default function PhishingSimulation() {
         </View>
 
         <Text style={styles.footerNote}>© 2026 Poșta Română - Securizat prin SSL</Text>
-
+{/* 
         <View style={styles.sentoGuard}>
           <Ionicons name="shield-checkmark" size={18} color="#2D7482" />
           <Text style={styles.sentoGuardText}>Sento AI: Scanare pagină activă</Text>
-        </View>
+        </View> */}
       </View>
 
       <Modal visible={isModalVisible} transparent animationType="fade">

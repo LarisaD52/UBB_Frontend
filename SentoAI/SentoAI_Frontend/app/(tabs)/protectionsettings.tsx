@@ -92,14 +92,12 @@ export default function ProtectionSettingsScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Text style={styles.mainTitle}>Cum vrei să te ajute Sento?</Text>
-        <Text style={styles.subTitle}>Activează paza de care ai nevoie. Sento învață cum faci plăți și te apără de hoți.</Text>
-
         {/* 1. OPREȘTE PLĂȚILE FOARTE MARI + TEXT BOX */}
         <View style={styles.card}>
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.label}>Oprește plățile foarte mari</Text>
-              <Text style={styles.desc}>Dacă vrei să trimiți mulți bani deodată, Sento te va întreba de două ori dacă ești sigur.</Text>
+              <Text style={styles.label}>Oprește plățile ce depășesc pragul</Text>
+              <Text style={styles.desc}>Dacă vrei să trimiți o sumă de bani care depășește pragul specificat, Sento îți va cere o confirmare suplimentară.</Text>
             </View>
             <Switch value={sumeMari} onValueChange={setSumeMari} trackColor={{ false: "#E2E8F0", true: "#2D7482" }} />
           </View>
@@ -164,7 +162,7 @@ export default function ProtectionSettingsScreen() {
         </View>
 
         <TouchableOpacity style={styles.saveBtn} onPress={saveControls}>
-          <Text style={styles.saveBtnText}>Salvează și Instruiește AI</Text>
+          <Text style={styles.saveBtnText}>Salvează</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -177,7 +175,7 @@ const styles = StyleSheet.create({
   backButton: { width: 45, height: 45, borderRadius: 15, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', elevation: 2 },
   headerTitle: { fontSize: 16, fontWeight: '700' },
   scrollContent: { padding: 20, paddingBottom: 50 },
-  mainTitle: { fontSize: 26, fontWeight: '800', color: '#1A1A1A', marginBottom: 10 },
+  mainTitle: { fontSize: 26, fontWeight: '800', color: '#1A1A1A', marginBottom: 20 },
   subTitle: { fontSize: 15, color: '#64748B', marginBottom: 30, lineHeight: 22 },
   card: { backgroundColor: '#fff', borderRadius: 24, padding: 20, marginBottom: 16, elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10 },
   highlightCard: { borderWidth: 1, borderColor: '#D1E7E9', backgroundColor: '#F0F9FF' },

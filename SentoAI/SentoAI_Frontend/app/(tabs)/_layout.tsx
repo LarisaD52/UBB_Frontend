@@ -50,7 +50,7 @@ export default function TabLayout() {
       <Tabs.Screen name="protectionsettings" options={{ href: null }} />
       <Tabs.Screen name="transactions" options={{ href: null }} />
       <Tabs.Screen name="transfer-confirm" options={{ href: null }} />
-      <Tabs.Screen name="phishing-simulation" options={{ href: null }} />
+      <Tabs.Screen name="phishing-simulation" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       <Tabs.Screen name="transaction-alert" options={{ href: null }} />
     </Tabs>
   );
