@@ -177,24 +177,61 @@ def process_logic(transcript):
 async def process_voice(data: dict):
     return process_logic(data.get("transcript", ""))
 
-@app.post("/process-audio")
-async def process_audio(audio: UploadFile = File(...)):
+# @app.post("/process-audio")
+# async def process_audio(audio: UploadFile = File(...)):
+    debug_path = "debug_uploaded.m4a"
+    # Save uploaded file for debugging
+    with open(debug_path, "wb") as f:
+        content = await audio.read()
+        f.write(content)
+    # Now process from the saved file (guaranteed to be at start)
     try:
-        contents = await audio.read()
-        audio_segment = AudioSegment.from_file(io.BytesIO(contents), format="m4a")
+        audio_segment = AudioSegment.from_file(debug_path, format="m4a")
         wav_io = io.BytesIO()
         audio_segment.export(wav_io, format="wav")
         wav_io.seek(0)
-        
         r = sr.Recognizer()
         with sr.AudioFile(wav_io) as source:
             recorded = r.record(source)
-            
         transcript = r.recognize_google(recorded, language="ro-RO")
         return process_logic(transcript)
-    except:
+    except Exception as e:
+        print(f"Error: {e}")
         return {"action": "SPEAK_ONLY", "speech": "Eroare audio, Maria."}
-    
+
+import mimetypes
+
+@app.post("/process-audio")
+async def process_audio(audio: UploadFile = File(...)):
+    debug_path = "debug_uploaded"
+    content = await audio.read()
+    with open(debug_path, "wb") as f:
+        f.write(content)
+
+    # Guess format from content type or file header
+    file_format = "m4a"
+    if audio.content_type == "audio/webm" or debug_path.endswith(".webm"):
+        file_format = "webm"
+    elif audio.content_type == "audio/ogg":
+        file_format = "ogg"
+    elif audio.content_type == "audio/opus":
+        file_format = "opus"
+    # You can also use python-magic for more robust detection
+
+    try:
+        audio_segment = AudioSegment.from_file(debug_path, format=file_format)
+        wav_io = io.BytesIO()
+        audio_segment.export(wav_io, format="wav")
+        wav_io.seek(0)
+        r = sr.Recognizer()
+        with sr.AudioFile(wav_io) as source:
+            recorded = r.record(source)
+        transcript = r.recognize_google(recorded, language="ro-RO")
+        return process_logic(transcript)
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"action": "SPEAK_ONLY", "speech": "Eroare audio, Maria."}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

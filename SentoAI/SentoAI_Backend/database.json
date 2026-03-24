@@ -1,12 +1,12 @@
 {
   "user_profile": {
     "name": "Maria",
-    "balance": "3250.50"
+    "balance": "3150.50"
   },
   "ai_controls": {
     "max_limit": {
       "enabled": true,
-      "amount": 500
+      "amount": 100
     },
     "verify_new_beneficiary": {
       "enabled": true
@@ -49,16 +49,11 @@
   "notifications": [
     {
       "id": 1,
-      "text": "Am detectat o tranzacție suspectă și am protejat contul tău. Revizuiește detaliile.",
-      "read": true
-    },
-    {
-      "id": 2,
       "text": "Transferul de 850 de lei către Ion Proprietar a fost realizat.",
       "read": false
     },
     {
-      "id": 3,
+      "id": 2,
       "text": "Sfat de securitate: Nu împărtăși niciodată codul PIN cu nimeni.",
       "read": true
     }
@@ -90,6 +85,15 @@
     }
   ],
   "transactions": [
+    {
+      "id": "31",
+      "title": "Transfer Adrian",
+      "sub": "IBAN",
+      "amount": "-100,00 RON",
+      "type": "out",
+      "date": "24 Mar",
+      "icon": "person-outline"
+    },
     {
       "id": "1",
       "title": "Pensie Decembrie",

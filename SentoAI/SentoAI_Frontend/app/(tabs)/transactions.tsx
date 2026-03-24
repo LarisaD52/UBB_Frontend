@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'; // Import corect pentru a evita crash-ul
+import { API_BASE_URL } from '@/config';
 
 export default function TransactionsScreen() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function TransactionsScreen() {
   
   const fetchTransactions = async () => {
     try {
-      const response = await fetch("http://localhost:8000/transactions");
+      const response = await fetch(`${API_BASE_URL}/transactions`);
       const data = await response.json();
       setTransactions(data || []);
     } catch (error) {

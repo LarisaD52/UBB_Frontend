@@ -5,6 +5,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput
 
 // IMPORTUL CORECT (verifică numărul de puncte în funcție de eroare)
 import SecurityAlert from '../../components/Alert'; 
+import { API_BASE_URL } from '@/config';
 
 export default function TransferScreen() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function TransferScreen() {
 
   const fetchAiControls = async () => {
     try {
-      const response = await fetch("http://localhost:8000/ai-controls");
+      const response = await fetch(`${API_BASE_URL}/ai-controls`);
       const data = await response.json();
       setSumeMari(data.max_limit.enabled);
       setLimitaSuma(data.max_limit.amount);
@@ -58,7 +59,7 @@ export default function TransferScreen() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/make-transaction", {
+      const response = await fetch(`${API_BASE_URL}/make-transaction`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

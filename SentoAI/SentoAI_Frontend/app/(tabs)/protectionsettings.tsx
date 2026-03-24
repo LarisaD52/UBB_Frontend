@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { API_BASE_URL } from '../../config';
 
 export default function ProtectionSettingsScreen() {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function ProtectionSettingsScreen() {
 
   const fetchAiControls = async () => {
     try {
-      const response = await fetch("http://localhost:8000/ai-controls");
+      const response = await fetch(`${API_BASE_URL}/ai-controls`);
       const data = await response.json();
       setSumeMari(data.max_limit.enabled);
       setLimitaSuma(data.max_limit.amount);
@@ -52,7 +53,7 @@ export default function ProtectionSettingsScreen() {
       };
 
       // Use POST if backend route is @app.post("/ai-controls")
-      const response = await fetch("http://localhost:8000/ai-controls", {
+      const response = await fetch(`${API_BASE_URL}/ai-controls`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -73,7 +74,7 @@ export default function ProtectionSettingsScreen() {
 
   const saveControls = async () => {
     const ok = await saveAiControls();
-    if (ok) router.back();
+    if (ok) router.push("/settings");;
   };
 
   useEffect(() => {
@@ -83,7 +84,7 @@ export default function ProtectionSettingsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.push("/settings")} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color="#1A1A1A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Setări Protecție Sento</Text>

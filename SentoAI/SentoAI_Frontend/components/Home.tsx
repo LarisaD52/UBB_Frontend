@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
+import { API_BASE_URL } from '@/config';
 
 export default function Home() {
   const router = useRouter();
@@ -26,8 +27,7 @@ export default function Home() {
 
   const fetchUserDetails = useCallback(async () => {
     try {
-      const SERVER_IP = "localhost"; // Înlocuiește cu IP-ul corect dacă e necesar 
-      const response = await fetch(`http://${SERVER_IP}:8000/me`);
+      const response = await fetch(`${API_BASE_URL}/me`);
       const data = await response.json();
       setCurrentBalance(data.balance)
     } catch (error) {
@@ -37,8 +37,7 @@ export default function Home() {
 
   const fetchTransactions = useCallback(async () => {
     try {
-      const SERVER_IP = "localhost"; // Înlocuiește cu IP-ul corect dacă e necesar 
-      const response = await fetch(`http://${SERVER_IP}:8000/transactions`);
+      const response = await fetch(`${API_BASE_URL}/transactions`);
       const data = await response.json();
       const list = Array.isArray(data) ? data : (data?.transactions ?? []);
       setTransactions(Array.isArray(list) ? list.slice(0, 5) : []);

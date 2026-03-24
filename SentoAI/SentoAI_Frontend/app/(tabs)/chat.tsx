@@ -2,9 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState, useEffect } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
-
-// !!! Asigură-te că acest IP este cel corect din terminalul Metro !!!
-const SERVER_URL = 'http://localhost:8000'; 
+import { API_BASE_URL } from '../../config';
 
 export default function ChatAssistantScreen() {
   const router = useRouter();
@@ -28,7 +26,7 @@ export default function ChatAssistantScreen() {
     setMessage('');
 
     try {
-      const response = await fetch(`${SERVER_URL}/process-voice`, {
+      const response = await fetch(`${API_BASE_URL}/process-voice`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transcript: userText }),

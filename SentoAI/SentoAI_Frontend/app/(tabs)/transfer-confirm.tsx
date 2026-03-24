@@ -4,6 +4,7 @@ import * as Speech from 'expo-speech';
 import React, { useEffect } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { API_BASE_URL } from '@/config';
 
 export default function TransferConfirmScreen() {
   const router = useRouter();
@@ -18,11 +19,11 @@ export default function TransferConfirmScreen() {
   // REPARAT: useEffect nu mai dă eroare. Am scos 'async' din funcția principală.
   useEffect(() => {
     const message = `Maria, am pregătit transferul de ${suma} către ${nume}. Dacă totul este corect, apasă butonul mare de jos.`;
-    
+
     // Lansăm vorbirea direct
-    Speech.speak(message, { 
-      language: 'ro-RO', 
-      rate: 0.9 
+    Speech.speak(message, {
+      language: 'ro-RO',
+      rate: 0.9
     });
 
     // Funcția de curățare obligatorie
@@ -34,9 +35,37 @@ export default function TransferConfirmScreen() {
   const handleConfirm = () => {
     Speech.speak("Banii au fost trimiși. Transfer reușit!", { language: 'ro-RO' });
     Alert.alert("Succes", "Transferul a fost finalizat!");
-    
+
+    handleTransferInit()
+
     // REPARAT: Folosim o cale validă (index sau home) pentru a evita eroarea de rută
-    router.replace('/' as any); 
+    router.replace('/' as any);
+  };
+
+  const handleTransferInit = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/make-transaction`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `Transfer ${nume}`,
+          sub: "IBAN",
+          amount: suma.split(" ")[0],
+          type: "out",
+          currency: "RON",
+          icon: "person-outline"
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok || data?.status !== "ok") {
+        alert(data?.message || "Eroare la salvarea tranzacției.");
+        return;
+      }
+    } catch (error) {
+      console.error("make-transaction error:", error);
+      alert("Nu s-a putut contacta serverul.");
+    }
   };
 
   return (
@@ -48,14 +77,14 @@ export default function TransferConfirmScreen() {
         <View style={styles.card}>
           <Text style={styles.label}>DESTINATAR:</Text>
           <Text style={styles.value}>{nume} ({relatie})</Text>
-          
+
           <View style={styles.divider} />
-          
+
           <Text style={styles.label}>SUMĂ DE PLATĂ:</Text>
           <Text style={styles.amount}>{suma}</Text>
-          
+
           <View style={styles.divider} />
-          
+
           <Text style={styles.label}>CONT IBAN:</Text>
           <Text style={styles.iban}>{iban}</Text>
         </View>
@@ -76,11 +105,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 25 },
   header: { fontSize: 28, fontWeight: '900', color: '#1A1A1A', marginVertical: 20 },
-  card: { 
-    backgroundColor: '#fff', 
-    width: '100%', 
-    borderRadius: 30, 
-    padding: 25, 
+  card: {
+    backgroundColor: '#fff',
+    width: '100%',
+    borderRadius: 30,
+    padding: 25,
     elevation: 10,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -93,14 +122,14 @@ const styles = StyleSheet.create({
   amount: { fontSize: 38, fontWeight: '900', color: '#2D7482', marginBottom: 15 },
   iban: { fontSize: 15, color: '#475569', fontFamily: 'monospace' },
   divider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 15 },
-  confirmBtn: { 
-    backgroundColor: '#2D7482', 
-    width: '100%', 
-    height: 80, 
-    borderRadius: 25, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    marginTop: 40 
+  confirmBtn: {
+    backgroundColor: '#2D7482',
+    width: '100%',
+    height: 80,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 40
   },
   confirmText: { color: '#fff', fontSize: 22, fontWeight: 'bold' },
   cancelBtn: { marginTop: 20, padding: 10 },

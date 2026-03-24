@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
@@ -31,7 +32,7 @@ export default function SettingsScreen() {
   const fetchContacts = async () => {
     setLoadingContacts(true);
     try {
-      const res = await fetch('http://localhost:8000/contacts');
+      const res = await fetch(`${API_BASE_URL}/contacts`);
       const data = await res.json();
       if (Array.isArray(data)) {
         setTrustedContacts(data.map((c: any, i: number) => ({ id: String(i+1), name: c.nume || c.name || 'Contact', initial: getInitial(c.nume || c.name) })));
@@ -45,7 +46,7 @@ export default function SettingsScreen() {
   
   const handleDeleteContact = async (contactName: string) => {
     try {
-      const res = await fetch('http://localhost:8000/contacts', {
+      const res = await fetch(`${API_BASE_URL}/contacts`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nume: contactName }),
@@ -69,7 +70,7 @@ export default function SettingsScreen() {
     }
     const payload = { nume: newName.trim(), relatie: newRelation.trim(), last_transfer: 0 };
     try {
-      const res = await fetch('http://localhost:8000/contacts', {
+      const res = await fetch(`${API_BASE_URL}/contacts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

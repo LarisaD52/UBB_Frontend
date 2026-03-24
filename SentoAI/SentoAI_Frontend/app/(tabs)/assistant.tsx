@@ -5,9 +5,7 @@ import * as Speech from 'expo-speech';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, Vibration, View, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-// !!! Asigură-te că acest IP este cel corect din terminalul Metro !!!
-const SERVER_URL = 'http://localhost:8000'; 
+import { API_BASE_URL } from '../../config';
 
 export default function AssistantScreen() {
   const router = useRouter();
@@ -29,7 +27,17 @@ export default function AssistantScreen() {
     };
   }, []);
 
-  const aiSpeak = (text: string) => {
+  const aiSpeak = async (text: string) => {
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      interruptionModeIOS: 1,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: false,
+      interruptionModeAndroid: 1,
+      playThroughEarpieceAndroid: false,
+      staysActiveInBackground: false,
+    });
+
     Speech.speak(text, { 
         language: 'ro-RO', 
         rate: 0.85, 
@@ -61,6 +69,17 @@ export default function AssistantScreen() {
     setIsListening(false);
     try {
       await recording.stopAndUnloadAsync();
+
+      // Switch audio session back to playback (loud speaker)
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,       // <-- this is the key line
+        playsInSilentModeIOS: true,
+        interruptionModeIOS: 1,
+        interruptionModeAndroid: 1,
+        shouldDuckAndroid: false,
+        playThroughEarpieceAndroid: false,
+      });
+
       const uri = recording.getURI();
       setRecording(null);
       Vibration.vibrate([0, 50]);
@@ -78,19 +97,27 @@ export default function AssistantScreen() {
       setStatusText("Sento procesează vocea...");
 
       const formData = new FormData();
-      // @ts-ignore
-      formData.append('audio', {
-        uri: uri,
-        type: "audio/m4a",
-        name: "comanda_maria.m4a",
-      });
+      if (Platform.OS === "web") {
+        const response = await fetch(uri); // uri is a blob URL
+        const blob = await response.blob();
+        const file = new File([blob], "comanda_maria.webm", { type: "audio/webm" });
+        formData.append('audio', file);
+      } else {
+        // Native (iOS/Android)
+        // @ts-ignore
+        formData.append('audio', {
+          uri: uri,
+          type: "audio/m4a",
+          name: "comanda_maria.m4a",
+        });
+      }
 
-      const response = await fetch("http://localhost:8000/process-audio", {
+      const response = await fetch(`${API_BASE_URL}/process-audio`, {
         method: 'POST',
         body: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        // headers: {
+        //   "Content-Type": "multipart/form-data",
+        // },
       });
 
       if (!response.ok) throw new Error("Server offline");
@@ -117,6 +144,28 @@ export default function AssistantScreen() {
       aiSpeak("Eroare de conexiune cu serverul Sento.");
     }
   };
+
+  useEffect(() => {
+    (async () => {
+      // Set audio mode immediately on screen load
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        interruptionModeIOS: 1,
+        interruptionModeAndroid: 1,
+        shouldDuckAndroid: false,
+        playThroughEarpieceAndroid: false,
+      });
+
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== 'granted') {
+        setStatusText("Avem nevoie de permisiune pentru microfon");
+      }
+    })();
+    return () => {
+      Speech.stop();
+    };
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>

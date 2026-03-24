@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { API_BASE_URL } from "../../config";
 
 export default function ConsumeProfileScreen() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function ConsumeProfileScreen() {
 
   const fetchRestrictions = async () => {
     try {
-      const response = await fetch("http://localhost:8000/restrictions");
+      const response = await fetch(`${API_BASE_URL}/restrictions`);
       const data = await response.json();
       setRestrictions(data || []);
     } catch (error) {
@@ -78,13 +79,13 @@ export default function ConsumeProfileScreen() {
 
   const saveRestrictions = async () => {
     try {
-      const response = await fetch("http://localhost:8000/restrictions", {
+      const response = await fetch(`${API_BASE_URL}/restrictions`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(restrictions),
       });
       if (response.ok) {
-        router.back();
+        router.push("/settings");
       }
     } catch (error) {
       console.error("Error saving restrictions:", error);
@@ -103,7 +104,7 @@ export default function ConsumeProfileScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.push("/settings")}
           style={styles.backButton}
         >
           <Ionicons name="chevron-back" size={24} color="#1A1A1A" />

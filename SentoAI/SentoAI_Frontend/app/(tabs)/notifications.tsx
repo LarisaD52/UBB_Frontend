@@ -11,15 +11,6 @@ export default function NotificationsScreen() {
   const notifications = [
     {
       id: '1',
-      type: 'danger',
-      title: 'Tranzacție suspectă blocată',
-      desc: 'Am detectat o tentativă de fraudă și am protejat contul tău. Revizuiește detaliile.',
-      time: 'Acum 2 ore',
-      icon: 'alert-circle',
-      active: true
-    },
-    {
-      id: '2',
       type: 'success',
       title: 'Transfer confirmat',
       desc: 'Transferul de 850 RON către Ion Proprietar a fost realizat.',
@@ -27,7 +18,7 @@ export default function NotificationsScreen() {
       icon: 'checkmark-circle'
     },
     {
-      id: '3',
+      id: '2',
       type: 'info',
       title: 'Sfat de securitate',
       desc: 'Nu împărtăși niciodată codul PIN sau parola cu nimeni.',
