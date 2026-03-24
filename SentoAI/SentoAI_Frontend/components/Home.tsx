@@ -26,7 +26,7 @@ export default function Home() {
 
   const fetchUserDetails = useCallback(async () => {
     try {
-      const SERVER_IP = "localhost"; // Înlocuiește cu IP-ul corect dacă e necesar 
+      const SERVER_IP = "192.168.1.209"; // Înlocuiește cu IP-ul corect dacă e necesar 
       const response = await fetch(`http://${SERVER_IP}:8000/me`);
       const data = await response.json();
       setCurrentBalance(data.balance)
@@ -37,7 +37,7 @@ export default function Home() {
 
   const fetchTransactions = useCallback(async () => {
     try {
-      const SERVER_IP = "localhost"; // Înlocuiește cu IP-ul corect dacă e necesar 
+      const SERVER_IP = "192.168.1.209"; // Înlocuiește cu IP-ul corect dacă e necesar 
       const response = await fetch(`http://${SERVER_IP}:8000/transactions`);
       const data = await response.json();
       const list = Array.isArray(data) ? data : (data?.transactions ?? []);

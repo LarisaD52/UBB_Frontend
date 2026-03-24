@@ -1,60 +1,134 @@
 import { Ionicons } from '@expo/vector-icons';
+
 import { Audio } from 'expo-av';
 import { useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, Vibration, View, Platform } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // !!! Asigură-te că acest IP este cel corect din terminalul Metro !!!
-const SERVER_URL = 'http://localhost:8000'; 
+const SERVER_URL = 'http://192.168.1.209:8000'; 
 
 export default function AssistantScreen() {
   const router = useRouter();
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isListening, setIsListening] = useState(false);
+  const isFocused = useIsFocused(); // Detectează când Maria revine pe ecran
   const [statusText, setStatusText] = useState(
     "Apasă 'START' și spune ce dorești",
   );
 
   useEffect(() => {
-    (async () => {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== 'granted') {
-        setStatusText("Avem nevoie de permisiune pentru microfon");
-      }
-    })();
+    if (isFocused) {
+      const startFresh = async () => {
+        // Oprim orice voce anterioară
+        Speech.stop();
+        
+        // Curățăm orice înregistrare veche "agățată"
+        if (recording) {
+          await stopAndCleanup(recording);
+        }
+
+        // Resetăm starea vizuală
+        setStatusText("Bună, Maria!");
+
+        // Pornim dialogul de la zero
+        setTimeout(() => {
+          aiSpeak("Bună, Maria! Cu ce te pot ajuta acum?", true);
+        }, 800);
+      };
+
+      startFresh();
+    }
+
     return () => {
       Speech.stop();
     };
-  }, []);
+  }, [isFocused]);
 
-  const aiSpeak = (text: string) => {
-    Speech.speak(text, { 
-        language: 'ro-RO', 
-        rate: 0.85, 
-        onStart: () => setStatusText(text) 
-    });
-  };
+  const aiSpeak = (text: string, shouldListen: boolean = false) => {
+  Speech.stop(); // Oprim orice vorbire anterioară
 
-  async function handleStart() {
-    try {
-      Vibration.vibrate(50);
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY,
-      );
-      setRecording(recording);
-      setIsListening(true);
-      setStatusText("Te ascult, Maria...");
-    } catch (err) {
-      console.error("Eroare Start Recording:", err);
+  Speech.speak(text, { 
+    language: 'ro-RO', 
+    rate: 0.85, 
+    onStart: () => setStatusText(text),
+    onDone: () => {
+      // Dacă am setat că trebuie să asculte, pornim microfonul după o mică pauză
+      if (shouldListen) {
+        setTimeout(() => {
+          handleStart();
+        }, 400); // 400ms pauză ca să nu se audă pe el însuși
+      }
     }
+  });
+};
+  async function handleStart() {
+  if (isListening || recording) return;
+
+  try {
+    // 1. FORȚĂM MODUL AUDIO PENTRU IOS (Trebuie să fie primul pas)
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: true, // Aceasta este linia critică
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: false,
+      interruptionModeIOS: 1, // DoNotMix
+      shouldDuckAndroid: true,
+      interruptionModeAndroid: 1,
+      playThroughEarpieceAndroid: false,
+    });
+
+    Vibration.vibrate(50);
+    setStatusText("Te ascult, Maria...");
+
+    // 2. Acum încercăm să creăm înregistrarea
+    const { recording: newRecording } = await Audio.Recording.createAsync(
+      Audio.RecordingOptionsPresets.HIGH_QUALITY
+    );
+    
+    setRecording(newRecording);
+    setIsListening(true);
+
+    setTimeout(() => {
+        stopAndCleanup(newRecording);
+    }, 5000);
+
+  } catch (err) {
+    console.error("Eroare la pornire:", err);
+    setRecording(null);
+    setIsListening(false);
+    // Dacă dă eroare, îi spunem Mariei
+    aiSpeak("Maria, nu pot activa microfonul. Te rog verifică setările telefonului.");
   }
+}
+
+async function stopAndCleanup(recordingToStop: Audio.Recording | null) {
+  if (!recordingToStop) return;
+
+  try {
+    const status = await recordingToStop.getStatusAsync();
+    
+    // Verificăm dacă mai putem opera pe acest obiect
+    if (status.canRecord || status.isRecording) {
+      await recordingToStop.stopAndUnloadAsync();
+      const uri = recordingToStop.getURI();
+      
+      // Curățăm starea globală
+      setRecording(null);
+      setIsListening(false);
+
+      if (uri) {
+        uploadAudio(uri);
+      }
+    }
+  } catch (error) {
+    console.log("Obiectul era deja descărcat.");
+    setRecording(null);
+    setIsListening(false);
+  }
+}
 
   async function handleStop() {
     if (!recording) return;
@@ -74,49 +148,49 @@ export default function AssistantScreen() {
   }
 
   const uploadAudio = async (uri: string) => {
-    try {
-      setStatusText("Sento procesează vocea...");
+  try {
+    setStatusText("Sento procesează...");
+    const formData = new FormData();
+    // @ts-ignore
+    formData.append('audio', { uri, type: "audio/m4a", name: "voice.m4a" });
 
-      const formData = new FormData();
-      // @ts-ignore
-      formData.append('audio', {
-        uri: uri,
-        type: "audio/m4a",
-        name: "comanda_maria.m4a",
+    const response = await fetch(`${SERVER_URL}/process-audio`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const result = await response.json();
+    
+    if (result.action === "NAVIGATE_WITH_DATA") {
+      // 1. NAVIGĂM IMEDIAT (Ecranul se schimbă instant)
+      router.push({ 
+        pathname: result.target as any, 
+        params: result.data || {} 
       });
 
-      const response = await fetch("http://localhost:8000/process-audio", {
-        method: 'POST',
-        body: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // 2. AȘTEPTĂM O SECUNDĂ (ca ecranul nou să se încarce)
+      // și abia apoi pornim vocea
+      setTimeout(() => {
+        Speech.speak(result.speech, {
+          language: 'ro-RO',
+          rate: 0.85,
+          onStart: () => setStatusText(result.speech),
+          onDone: () => {
+            // 3. După ce termină de vorbit, vibrează și o ascultă pentru DA/NU
+            Vibration.vibrate(100);
+            handleStart(); 
+          }
+        });
+      }, 1000); // 1000ms = 1 secundă de liniște până se încarcă noul ecran
 
-      if (!response.ok) throw new Error("Server offline");
-
-      const result = await response.json();
-      
-      // LOGICĂ NOUĂ: Dacă utilizatorul vrea transfer, îl trimitem în chat pentru detalii
-      if (result.action === "NAVIGATE_WITH_DATA") {
-        aiSpeak(result.speech);
-        
-        // Așteptăm să termine de vorbit înainte de a schimba ecranul
-        setTimeout(() => {
-          router.push({ 
-            pathname: result.target as any, 
-            params: result.data || {} 
-          });
-        }, 2000);
-      } else {
-        // Pentru întrebări simple (ex: "Câți bani am?")
-        aiSpeak(result.speech);
-      }
-    } catch (error) {
-      console.error("Eroare Upload Audio:", error);
-      aiSpeak("Eroare de conexiune cu serverul Sento.");
+    } else {
+      // Pentru restul comenzilor (sold, etc.) care nu schimbă ecranul
+      aiSpeak(result.speech, true); 
     }
-  };
+  } catch (error) {
+    aiSpeak("Maria, am o problemă de conexiune.", true);
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>

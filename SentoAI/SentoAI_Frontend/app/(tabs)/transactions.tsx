@@ -18,7 +18,7 @@ export default function TransactionsScreen() {
   
   const fetchTransactions = async () => {
     try {
-      const response = await fetch("http://localhost:8000/transactions");
+      const response = await fetch("http://192.168.1.209:8000/transactions");
       const data = await response.json();
       setTransactions(data || []);
     } catch (error) {
