@@ -129,10 +129,10 @@ export default function ProtectionSettingsScreen() {
         </View>
 
         {/* 3. BLOCHEAZĂ FRAUDELE PRIN MESAJE (Legat de ajutorul familiei) */}
-        <View style={[styles.card, styles.highlightCard]}>
+        <View style={[styles.card]}>
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.label, { color: '#2D7482' }]}>Blochează fraudele prin mesaje</Text>
+              <Text style={[styles.label]}>Blochează fraudele prin mesaje</Text>
               <Text style={styles.desc}>Te anunțăm imediat dacă primești un mesaj fals care încearcă să-ți fure datele.</Text>
             </View>
             <Switch value={protectieLink} onValueChange={setProtectieLink} trackColor={{ false: "#E2E8F0", true: "#2D7482" }} />
