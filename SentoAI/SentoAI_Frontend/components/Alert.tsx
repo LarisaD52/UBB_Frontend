@@ -47,7 +47,10 @@ export default function SecurityAlert({ onNavigate, reason, amount }: SecurityAl
         <View style={styles.rowButtons}>
           <TouchableOpacity 
             style={[styles.sideBtn, styles.cancelBtn]} 
-            onPress={() => onNavigate('transfer')}
+            onPress={() => {
+              onNavigate("transfer")
+              onNavigate("/")
+            }}
           >
             <Text style={styles.cancelText}>Anulează plata</Text>
           </TouchableOpacity>
