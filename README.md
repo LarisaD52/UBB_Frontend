@@ -1,32 +1,33 @@
-# 🤖 UBB_Frontend (SentoAI)
+# 🤖 (SentoAI)
 
-Acesta este proiectul frontend dezvoltat cu Expo și React Native.
+# Frontend
 
----
+`/SentoAI_Frontend`
 
-### 📦 1.1 Instalarea dependențelor
-Deschide terminalul în directorul proiectului și rulează:
-`npm install`
+Install dependencies: `npm install --legacy-peer-deps`
 
-### 💻 1.2 Configurare Simulator
-Pentru a rula aplicația pe calculator, ai nevoie de:
-iOS (Mac doar): Instalează Xcode din App Store. După instalare, deschide-l o dată pentru a accepta licența.
-Android: Instalează Android Studio și configurează un "Virtual Device" (Emulator) din Device Manager.
+Run: `npx expo start`
 
-### ⚡ 2. Pornirea proiectului
-Pentru a porni serverul și a curăța cache-ul, rulează:
-`npx expo start --clear`
+# Backend
 
-### 📱 3. Vizualizarea aplicației
-După start, apasă tasta corespunzătoare:
-* **i** — simulator iOS
-* **a** — emulator Android
-* **w** — browser Web
-* **QR Scan** — cu aplicația Expo Go
+`/SentoAI_Backend`
 
----
+Install dependencies: `pip install -r requirements.txt`
 
-### 🛠️ Comenzi Rapide
-* **r** — Reload app
-* **m** — Meniu developeri
-* **Ctrl + C** — Oprește serverul
+Run: `uvicorn main:app`
+
+Custom IP + port (append to the run command): `--host CUSTOM_IP --port CUSTOM_PORT`
+
+# Running on web (local machine)
+
+- start the frontend
+- look for the line: `Web is waiting on://localhost:LOCAL_PORT`
+- start the backend without custom ip, eventually with custom port `BE_PORT`
+- update the variable `API_BASE_URL` from `/SentoAI_Frontend/config.ts` with `localhost:BE_PORT`
+
+# Running on mobile (Expo go)
+
+- start the frontend
+- look for the line: `Metro waiting on exp://NETWORK_IP:FE_PORT`
+- start the backend using `NETWORK_IP` as custom ip, and eventually `BE_PORT` as custom port
+- update the variable `API_BASE_URL` from `/SentoAI_Frontend/config.ts` with `NETWORK_IP:BE_PORT`
