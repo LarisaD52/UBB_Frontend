@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 12, fontWeight: '700', color: '#94A3B8', marginBottom: -5 },
   input: { backgroundColor: '#F1F5F9', borderRadius: 15, padding: 15, fontSize: 16 },
   amountRow: { flexDirection: 'row', alignItems: 'baseline', borderBottomWidth: 2, borderBottomColor: '#E2E8F0' },
-  amountInput: { fontSize: 35, fontWeight: '700', color: '#2D7482', flex: 1 },
+  amountInput: { fontSize: 35, fontWeight: '700', color: '#2D7482', flex: 1, borderWidth: 0, outlineWidth: 0, outlineColor: 'transparent' },
   currency: { fontSize: 20, color: '#94A3B8', fontWeight: '600' },
   btn: { backgroundColor: '#2D7482', margin: 20, padding: 20, borderRadius: 20, alignItems: 'center' },
   btnText: { color: '#fff', fontSize: 18, fontWeight: '700' },
