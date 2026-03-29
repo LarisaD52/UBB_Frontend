@@ -34,6 +34,7 @@ export default function ProtectionSettingsScreen() {
   const saveAiControls = async () => {
     try {
       const payload = {
+        enabled: true,
         max_limit: {
           enabled: sumeMari,
           amount: Number(limitaSuma) || 0
@@ -52,7 +53,6 @@ export default function ProtectionSettingsScreen() {
         }
       };
 
-      // Use POST if backend route is @app.post("/ai-controls")
       const response = await fetch(`${API_BASE_URL}/ai-controls`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

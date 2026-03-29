@@ -4,6 +4,7 @@
     "balance": "3150.50"
   },
   "ai_controls": {
+    "enabled": true,
     "max_limit": {
       "enabled": true,
       "amount": 100
