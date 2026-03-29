@@ -65,7 +65,7 @@ export default function Home() {
   };
 
   const adiData = {
-    name: "Nepotul",
+    name: "Nepot",
     role: "trusted_contact",
     avatar: require('../assets/images/andrei.png'),
     color: "#2D7482",
