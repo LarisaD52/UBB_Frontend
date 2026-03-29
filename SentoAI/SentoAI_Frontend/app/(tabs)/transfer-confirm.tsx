@@ -18,18 +18,18 @@ export default function TransferConfirmScreen() {
 
   // REPARAT: useEffect nu mai dă eroare. Am scos 'async' din funcția principală.
   useEffect(() => {
-    const message = `Maria, am pregătit transferul de ${suma} către ${nume}. Dacă totul este corect, apasă butonul mare de jos.`;
+    // const message = `Maria, am pregătit transferul de ${suma} către ${nume}. Dacă totul este corect, apasă butonul mare de jos.`;
 
-    // Lansăm vorbirea direct
-    Speech.speak(message, {
-      language: 'ro-RO',
-      rate: 0.9
-    });
+    // // Lansăm vorbirea direct
+    // Speech.speak(message, {
+    //   language: 'ro-RO',
+    //   rate: 0.9
+    // });
 
-    // Funcția de curățare obligatorie
-    return () => {
-      Speech.stop();
-    };
+    // // Funcția de curățare obligatorie
+    // return () => {
+    //   Speech.stop();
+    // };
   }, [nume, suma]);
 
   const handleConfirm = () => {
@@ -39,7 +39,7 @@ export default function TransferConfirmScreen() {
     handleTransferInit()
 
     // REPARAT: Folosim o cale validă (index sau home) pentru a evita eroarea de rută
-    router.replace('/' as any);
+    router.push('/');
   };
 
   const handleTransferInit = async () => {

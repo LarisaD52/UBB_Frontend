@@ -65,7 +65,7 @@ export default function Home() {
   };
 
   const adiData = {
-    name: "Nepotul",
+    name: "Nepot",
     role: "trusted_contact",
     avatar: require('../assets/images/andrei.png'),
     color: "#2D7482",
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   actionGrid: { flexDirection: 'row', gap: 15, marginTop: 20 },
   bigActionButton: { flex: 1, backgroundColor: '#F0F9FF', borderRadius: 24, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E0F2FE' },
   bigIconCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', marginBottom: 12, elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5 },
-  bigActionTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', marginBottom: 4 },
+  bigActionTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', marginBottom: 4, textAlign: 'center' },
   bigActionSub: { fontSize: 12, color: '#64748B' },
 
   sectionHeader: { marginTop: 30, marginBottom: 15 },

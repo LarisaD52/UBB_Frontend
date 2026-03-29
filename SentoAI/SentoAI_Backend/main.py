@@ -368,6 +368,14 @@ def _pick_icon(sub: str, title: str) -> str:
         return "home-outline"
     return "cart-outline"
 
+@app.post("/switch-ai-controls")
+async def switch_ai_controls(request: Request):
+    status = await request.json()
+    db = get_db()
+    db["ai_controls"]["enabled"] = status["enabled"]
+    save_db(db)
+    return {"status": "ok"}
+
 @app.get("/ai-controls")
 def get_ai_controls():
     return get_db().get("ai_controls", {})
@@ -376,7 +384,9 @@ def get_ai_controls():
 async def set_ai_controls(request: Request):
     ai_controls = await request.json()
     db = get_db()
+    status = db["ai_controls"]["enabled"]
     db["ai_controls"] = ai_controls
+    db["ai_controls"]["enabled"] = status
     save_db(db)
     return {"status": "ok"}
     

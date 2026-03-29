@@ -2,14 +2,14 @@ import { API_BASE_URL } from '@/config';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View, Modal, TextInput, Alert, ActivityIndicator, SwitchProps } from 'react-native';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  
+
   // State-uri pentru controlul setărilor
-  const [isProtectionEnabled, setIsProtectionEnabled] = useState(true);
-  const [biometrics, setBiometrics] = useState(true);
+  const [isProtectionEnabled, setIsProtectionEnabled] = useState(false);
+  const [biometrics, setBiometrics] = useState(false);
   const [notifications, setNotifications] = useState(true);
 
   // Date pentru contacte
@@ -25,9 +25,20 @@ export default function SettingsScreen() {
   const getInitial = (name: string) => {
     if (!name) return '';
     const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
   };
+
+  const fetchAiControls = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/ai-controls`);
+      const data = await response.json();
+      setIsProtectionEnabled(data.enabled);
+    } catch (error) {
+      console.error("Error fetching ai controls:", error);
+    } finally {
+    }
+  }
 
   const fetchContacts = async () => {
     setLoadingContacts(true);
@@ -35,7 +46,7 @@ export default function SettingsScreen() {
       const res = await fetch(`${API_BASE_URL}/contacts`);
       const data = await res.json();
       if (Array.isArray(data)) {
-        setTrustedContacts(data.map((c: any, i: number) => ({ id: String(i+1), name: c.nume || c.name || 'Contact', initial: getInitial(c.nume || c.name) })));
+        setTrustedContacts(data.map((c: any, i: number) => ({ id: String(i + 1), name: c.nume || c.name || 'Contact', initial: getInitial(c.nume || c.name) })));
       }
     } catch (e) {
       console.warn('Failed to fetch contacts', e);
@@ -43,7 +54,7 @@ export default function SettingsScreen() {
       setLoadingContacts(false);
     }
   };
-  
+
   const handleDeleteContact = async (contactName: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/contacts`, {
@@ -61,6 +72,7 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     fetchContacts();
+    fetchAiControls();
   }, []);
 
   const addContactSubmit = async () => {
@@ -86,6 +98,32 @@ export default function SettingsScreen() {
     }
   };
 
+  const changeSwitchState = async () => {
+    try {
+      const payload = {
+        enabled: !isProtectionEnabled,
+      };
+
+      const response = await fetch(`${API_BASE_URL}/switch-ai-controls`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error("Error saving ai controls:", errText);
+        return false;
+      }
+
+      setIsProtectionEnabled(!isProtectionEnabled)
+      return true;
+    } catch (error) {
+      console.error("Error saving ai controls:", error);
+      return false;
+    }
+  }
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
@@ -107,10 +145,10 @@ export default function SettingsScreen() {
               <Text style={styles.settingLabel}>Autentificare Biometrică</Text>
               <Text style={styles.settingSub}>FaceID pentru logare</Text>
             </View>
-            <Switch 
-              value={biometrics} 
-              onValueChange={setBiometrics} 
-              trackColor={{ false: "#E2E8F0", true: "#2D7482" }} 
+            <Switch
+              value={biometrics}
+              onValueChange={setBiometrics}
+              trackColor={{ false: "#E2E8F0", true: "#2D7482" }}
             />
           </View>
           <View style={styles.settingInfo}>
@@ -119,10 +157,10 @@ export default function SettingsScreen() {
               <Text style={styles.settingLabel}>Alerte Tranzacții</Text>
               <Text style={styles.settingSub}>Notificări în timp real</Text>
             </View>
-            <Switch 
-              value={notifications} 
-              onValueChange={setNotifications} 
-              trackColor={{ false: "#E2E8F0", true: "#2D7482" }} 
+            <Switch
+              value={notifications}
+              onValueChange={setNotifications}
+              trackColor={{ false: "#E2E8F0", true: "#2D7482" }}
             />
           </View>
         </View>
@@ -136,10 +174,10 @@ export default function SettingsScreen() {
               <Text style={styles.settingLabel}>Protecție Sento AI</Text>
               <Text style={styles.settingSub}>Analiză antifraudă activă</Text>
             </View>
-            <Switch 
-              value={isProtectionEnabled} 
-              onValueChange={setIsProtectionEnabled} 
-              trackColor={{ false: "#E2E8F0", true: "#2D7482" }} 
+            <Switch
+              value={isProtectionEnabled}
+              onValueChange={() => {changeSwitchState()}}
+              trackColor={{ false: "#E2E8F0", true: "#2D7482" }}
             />
           </View>
         </View>
@@ -147,12 +185,12 @@ export default function SettingsScreen() {
         {/* SECȚIUNE BUTOANE SPECIALE AI */}
         {isProtectionEnabled && (
           <View style={{ gap: 12, marginTop: 10 }}>
-            <TouchableOpacity 
-              style={[styles.specialAiButton, { backgroundColor: '#fff', borderColor: '#E2E8F0' }]} 
+            <TouchableOpacity
+              style={[styles.specialAiButton, { backgroundColor: '#fff', borderColor: '#E2E8F0' }]}
               onPress={() => router.push('/protectionsettings')}
             >
               <View style={styles.specialAiIconContent}>
-                 <Ionicons name="options-outline" size={22} color="#2D7482" />
+                <Ionicons name="options-outline" size={22} color="#2D7482" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.specialAiTitle, { color: '#1A1A1A' }]}>Personalizează limitele AI</Text>
@@ -161,12 +199,12 @@ export default function SettingsScreen() {
               <Ionicons name="chevron-forward" size={20} color="#2D7482" />
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.specialAiButton, { backgroundColor: '#fff', borderColor: '#E2E8F0' }]} 
+            <TouchableOpacity
+              style={[styles.specialAiButton, { backgroundColor: '#fff', borderColor: '#E2E8F0' }]}
               onPress={() => router.push('/consumeprofile')}
             >
               <View style={[styles.specialAiIconContent, { backgroundColor: '#F1F5F9' }]}>
-                 <Ionicons name="person-circle-outline" size={22} color="#2D7482" />
+                <Ionicons name="person-circle-outline" size={22} color="#2D7482" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.specialAiTitle, { color: '#1A1A1A' }]}>Profilul meu de consum</Text>
@@ -185,7 +223,7 @@ export default function SettingsScreen() {
               <Text style={styles.contactsDesc}>
                 Persoanele de mai jos pot confirma tranzacțiile tale.
               </Text>
-              
+
               {trustedContacts.map((contact) => (
                 <View key={contact.id} style={styles.contactRow}>
                   <View style={styles.avatar}>
@@ -209,7 +247,7 @@ export default function SettingsScreen() {
                     <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 8 }}>Adaugă contact</Text>
                     <TextInput placeholder="Nume complet" value={newName} onChangeText={setNewName} style={{ borderWidth: 1, borderColor: '#E2E8F0', padding: 10, borderRadius: 10, marginBottom: 8 }} />
                     <TextInput placeholder="Relație (ex: Frate)" value={newRelation} onChangeText={setNewRelation} style={{ borderWidth: 1, borderColor: '#E2E8F0', padding: 10, borderRadius: 10, marginBottom: 8 }} />
-                    
+
                     <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
                       <TouchableOpacity onPress={() => setShowAddModal(false)} style={{ paddingVertical: 8, paddingHorizontal: 12 }}>
                         <Text style={{ color: '#64748B' }}>Anulează</Text>
@@ -231,67 +269,67 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#F8FAFC' 
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC'
   },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    marginTop: 60, 
-    paddingHorizontal: 20 
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 60,
+    paddingHorizontal: 20
   },
-  backButton: { 
-    width: 45, 
-    height: 45, 
-    borderRadius: 15, 
-    backgroundColor: '#fff', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+  backButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 15,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
     elevation: 2,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4
   },
-  headerTitle: { 
-    fontSize: 20, 
-    fontWeight: '700', 
-    color: '#1A1A1A' 
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1A1A1A'
   },
-  content: { 
-    padding: 20 
+  content: {
+    padding: 20
   },
-  sectionTitle: { 
-    fontSize: 12, 
-    fontWeight: '700', 
-    color: '#94A3B8', 
-    marginBottom: 12, 
-    marginTop: 24, 
-    letterSpacing: 1 
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#94A3B8',
+    marginBottom: 12,
+    marginTop: 24,
+    letterSpacing: 1
   },
-  settingCard: { 
-    backgroundColor: '#fff', 
-    borderRadius: 20, 
-    padding: 15, 
-    marginBottom: 10 
+  settingCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 15,
+    marginBottom: 10
   },
-  settingInfo: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginVertical: 12 
+  settingInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 12
   },
-  icon: { 
-    marginRight: 15 
+  icon: {
+    marginRight: 15
   },
-  settingLabel: { 
-    fontSize: 16, 
-    fontWeight: '600', 
-    color: '#1A1A1A' 
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A1A1A'
   },
-  settingSub: { 
-    fontSize: 12, 
-    color: '#94A3B8' 
+  settingSub: {
+    fontSize: 12,
+    color: '#94A3B8'
   },
   specialAiButton: {
     flexDirection: 'row',
@@ -315,67 +353,67 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 15,
   },
-  specialAiTitle: { 
-    fontSize: 16, 
-    fontWeight: '700', 
-    color: '#2D7482' 
+  specialAiTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#2D7482'
   },
-  specialAiSub: { 
-    fontSize: 13, 
-    color: '#64748B', 
-    marginTop: 2 
+  specialAiSub: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2
   },
-  contactsCard: { 
-    backgroundColor: '#fff', 
-    borderRadius: 28, 
+  contactsCard: {
+    backgroundColor: '#fff',
+    borderRadius: 28,
     padding: 24,
     shadowColor: '#000',
     shadowOpacity: 0.02,
     shadowRadius: 10,
     elevation: 1
   },
-  contactsDesc: { 
-    color: '#94A3B8', 
-    fontSize: 15, 
+  contactsDesc: {
+    color: '#94A3B8',
+    fontSize: 15,
     marginBottom: 20,
-    lineHeight: 20 
+    lineHeight: 20
   },
-  contactRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginBottom: 20 
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20
   },
-  avatar: { 
-    width: 48, 
-    height: 48, 
-    borderRadius: 24, 
-    backgroundColor: '#F0F9FF', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    marginRight: 16 
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F0F9FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16
   },
-  avatarText: { 
-    color: '#2D7482', 
-    fontWeight: '700', 
-    fontSize: 16 
+  avatarText: {
+    color: '#2D7482',
+    fontWeight: '700',
+    fontSize: 16
   },
-  contactName: { 
-    flex: 1, 
-    fontSize: 17, 
-    fontWeight: '500', 
-    color: '#1A1A1A' 
+  contactName: {
+    flex: 1,
+    fontSize: 17,
+    fontWeight: '500',
+    color: '#1A1A1A'
   },
-  addContactBtn: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
+  addContactBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 10,
     paddingVertical: 5
   },
-  addContactText: { 
-    color: '#2D7482', 
-    fontWeight: '800', 
-    fontSize: 16, 
-    marginLeft: 8 
+  addContactText: {
+    color: '#2D7482',
+    fontWeight: '800',
+    fontSize: 16,
+    marginLeft: 8
   }
 });
